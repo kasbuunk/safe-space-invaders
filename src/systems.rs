@@ -100,10 +100,19 @@ pub fn handle_game_start_music(
             }
 
             // Start game over music.
-            let menu_music_filename = "audio/game-start-music.ogg";
+            let game_start_effect_filename = "audio/game-start-music.ogg";
             commands.spawn((
                 AudioBundle {
-                    source: asset_server.load(menu_music_filename),
+                    source: asset_server.load(game_start_effect_filename),
+                    settings: PlaybackSettings::LOOP,
+                    ..default()
+                },
+                GameStartMusic {},
+            ));
+            let game_start_filename = "audio/game-start-music.ogg";
+            commands.spawn((
+                AudioBundle {
+                    source: asset_server.load(game_start_filename),
                     settings: PlaybackSettings::LOOP,
                     ..default()
                 },
@@ -231,9 +240,10 @@ pub fn spawn_bullet(
     keyboard_input: Res<Input<KeyCode>>,
     player_query: Query<&mut Transform, With<Player>>,
     asset_server: Res<AssetServer>,
+    mut game: ResMut<Game>,
 ) {
     // Wait until the player presses space
-    if keyboard_input.just_pressed(KeyCode::Space) {
+    if keyboard_input.just_pressed(KeyCode::Space) && game.started {
         // Get the player position, so we know where to spawn the bullet
         if let Ok(player) = player_query.get_single() {
             commands.spawn((
