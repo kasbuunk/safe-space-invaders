@@ -65,15 +65,17 @@ pub fn spawn_bullet(mut comands: Commands,
                     keyboard_input: Res<Input<KeyCode>>,
                     mut player_query: Query<&Transform, With<Player>>,
 ) {
-    if let Ok(mut player) = player_query.get_single_mut() {
-        if keyboard_input.pressed(KeyCode::Space) {
+    // Wait untill the player presses space
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        // Get the player position, so we know where to spawn the bullet
+        if let Ok(mut player) = player_query.get_single_mut() {
+            println!("Space pressed and we are shooting!");
             comands.spawn(
                 (Bullet {
                     position: Vec2::new(player.translation.x, player.translation.y),
                     speed: 2,
                 }),
             );
-            println!("Bullet spawned");
         };
     }
 }
