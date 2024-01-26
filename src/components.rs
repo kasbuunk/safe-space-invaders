@@ -13,3 +13,9 @@ pub struct Bullet {
 pub struct Castle {
     pub hitpoints: u32,
 }
+
+#[derive(Component, Default)]
+pub struct Enemy {
+    pub level: u32,
+    pub is_dead: bool,
+}
