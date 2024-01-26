@@ -39,15 +39,14 @@ pub fn spawn_background(
     let intro_asset_filename = "images/background.png";
     let window: &Window = window_query.get_single().unwrap();
 
-    commands.spawn((
-        SpriteBundle {
+    commands.spawn(
+        (SpriteBundle {
             transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, -10.0),
             texture: asset_server.load(intro_asset_filename),
             ..default()
-        }
-    ));
+        }),
+    );
 }
-
 
 pub fn start_game(
     mut commands: Commands,
@@ -57,7 +56,7 @@ pub fn start_game(
     mut intro_query: Query<(Entity, &Transform), With<Intro>>,
     mut game: ResMut<Game>,
 ) {
-    if keyboard_input.pressed(KeyCode::Space) {
+    if keyboard_input.pressed(KeyCode::Space) && !game.started {
         start_game_event_writer.send(StartGame {});
         if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
             commands.entity(intro_entity).despawn();
@@ -72,8 +71,8 @@ pub fn spawn_player(
     asset_server: Res<AssetServer>,
     mut start_game_event_reader: EventReader<StartGame>,
 ) {
-    // match start_game_event_reader.read().next() {
-        // Some(event) => {
+    match start_game_event_reader.read().next() {
+        Some(event) => {
             let player_asset_filename = "sprites/spaceship.png";
             let window: &Window = window_query.get_single().unwrap();
 
@@ -89,9 +88,9 @@ pub fn spawn_player(
                 },
                 Player {},
             ));
-    //     }
-    //     None => (),
-    // }
+        }
+        None => (),
+    }
 }
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
@@ -196,7 +195,6 @@ pub fn player_movement(
     time: Res<Time>,
 ) {
     for mut transform in &mut query {
-
         let mut direction = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
@@ -257,7 +255,8 @@ pub fn spawn_enemies(
             let window_padding = ENEMY_SIZE / 2.0;
             let window_width = window.width() - window_padding * 2.0;
 
-            let padding_per_enemy = (window_width - (ENEMY_SIZE * AMOUNT_OF_ENEMIES as f32)) / AMOUNT_OF_ENEMIES as f32;
+            let padding_per_enemy =
+                (window_width - (ENEMY_SIZE * AMOUNT_OF_ENEMIES as f32)) / AMOUNT_OF_ENEMIES as f32;
 
             for i in 0..AMOUNT_OF_ROWS {
                 let level = AMOUNT_OF_ROWS - i;
@@ -266,7 +265,11 @@ pub fn spawn_enemies(
                     let new_j = j as f32 * size + window_padding + padding_per_enemy / 2.0;
                     commands.spawn((
                         SpriteBundle {
-                            transform: Transform::from_xyz(new_j, top_offset + i as f32 * ENEMY_SIZE, 0.0),
+                            transform: Transform::from_xyz(
+                                new_j,
+                                top_offset + i as f32 * ENEMY_SIZE,
+                                0.0,
+                            ),
                             texture: asset_server.load("sprites/enemy-character.png"),
                             ..default()
                         },
