@@ -1,3 +1,4 @@
+use std::string::ToString;
 use crate::components::*;
 use crate::events::*;
 use crate::resources::*;
@@ -7,9 +8,10 @@ use bevy::window::PrimaryWindow;
 
 use bevy::math::vec3;
 use bevy::{prelude::*, render::render_resource::PrimitiveTopology, sprite::MaterialMesh2dBundle};
+use bevy::audio::{PlaybackMode, Volume};
 
 use bevy_xpbd_2d::{math::*, prelude::*};
-use rand::random;
+use rand::{random, Rng};
 
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: f32 = 64.0;
@@ -23,6 +25,16 @@ pub const WINDOW_HEIGHT: f32 = 800.0;
 const AMOUNT_OF_ROWS: u32 = 5;
 const AMOUNT_OF_ENEMIES: u32 = 10;
 const ENEMY_SIZE: f32 = 32.0;
+
+const GET_HIT_SOUNDS: [&str; 8] = [
+    "audio/daanhit.ogg",
+    "audio/erhanhit.ogg",
+    "audio/Frankhit.ogg",
+    "audio/hushit.ogg",
+    "audio/jeroenhit.ogg",
+    "audio/kashit.ogg",
+    "audio/Ryanhit.ogg",
+    "audio/stormhit.ogg"];
 
 pub fn spawn_game_intro(
     mut commands: Commands,
@@ -163,7 +175,7 @@ pub fn handle_game_over_music(
             commands.spawn((
                 AudioBundle {
                     source: asset_server.load(menu_music_filename),
-                    settings: PlaybackSettings::ONCE,
+                    settings: PlaybackSettings::DESPAWN,
                     ..default()
                 },
                 GameOverMusic {},
@@ -269,7 +281,7 @@ pub fn spawn_bullet(
         let bullet_fire = "audio/schieten.ogg";
         commands.spawn(AudioBundle {
             source: asset_server.load(bullet_fire),
-            settings: PlaybackSettings::ONCE,
+            settings: PlaybackSettings::DESPAWN,
             ..default()
         });
     }
@@ -545,13 +557,13 @@ pub fn setup_lives(
                         ..default()
                     }),
                 ])
-                .with_text_alignment(TextAlignment::Center)
-                .with_style(Style {
-                    position_type: PositionType::Absolute,
-                    bottom: Val::Px(5.0),
-                    left: Val::Px(15.0),
-                    ..default()
-                }),
+                    .with_text_alignment(TextAlignment::Center)
+                    .with_style(Style {
+                        position_type: PositionType::Absolute,
+                        bottom: Val::Px(5.0),
+                        left: Val::Px(15.0),
+                        ..default()
+                    }),
                 LivesCounter,
             ));
         }
@@ -568,6 +580,7 @@ pub fn update_lives(mut query: Query<&mut Text, With<LivesCounter>>, lives: Res<
 
 pub fn bullet_hits_enemy(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut collision_query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
     enemy_query: Query<&Enemy>,
 ) {
@@ -576,6 +589,7 @@ pub fn bullet_hits_enemy(
             if enemy_query.get(*colliding_entity).is_ok() {
                 commands.entity(*colliding_entity).despawn();
                 commands.entity(entity).despawn();
+                call_random_hit_sound(commands, asset_server);
                 return;
             }
         }
@@ -640,6 +654,24 @@ pub fn bullet_hits_castle(
             }
         }
     }
+}
+
+pub fn call_random_hit_sound(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let mut rng = rand::thread_rng(); // Create a random number generator
+
+    // Generate a random number between 0 and the length of the array (exclusive)
+    let random_index = rng.gen_range(0..GET_HIT_SOUNDS.len());
+
+    let get_hit_sound = GET_HIT_SOUNDS[random_index];
+    println!("{}", get_hit_sound);
+    commands.spawn(AudioBundle {
+        source: asset_server.load(get_hit_sound),
+        settings: PlaybackSettings::DESPAWN,
+        ..default()
+    });
 }
 
 pub fn handle_game_over(
