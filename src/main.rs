@@ -3,18 +3,23 @@ mod events;
 mod resources;
 mod systems;
 
+use std::process::Command;
 use events::*;
 use resources::*;
 use systems::*;
 
 use bevy::prelude::*;
+
 use bevy::window::{PresentMode, WindowTheme};
 
 use bevy_xpbd_2d::prelude::*;
+use bevy_xpbd_2d::{math::*, prelude::*};
+use crate::components::{Bullet, Enemy};
 
 fn main() {
     App::new()
-        .insert_resource(Gravity(Vec2::NEG_Y * 0.0))
+        .add_plugins(PhysicsPlugins::default())
+        .insert_resource(Gravity(Vector::ZERO))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Safe space invaders!".into(),
@@ -45,6 +50,7 @@ fn main() {
         .add_systems(Startup, spawn_intro)
         .add_systems(Startup, start_menu_music)
         .add_systems(Update, spawn_bullet)
+        .add_systems(Update, check_colliding_entities)
         .add_systems(Update, move_bullet)
         .add_systems(Update, setup_lives)
         .add_systems(Update, start_game)
@@ -61,4 +67,27 @@ fn main() {
         .add_systems(Update, handle_game_start_music)
         .add_systems(Update, handle_game_over_music)
         .run();
+}
+
+
+fn check_colliding_entities(
+    mut commands: Commands,
+    mut query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
+    collider_parents: Query<&ColliderParent>,
+    collisions: Res<Collisions>,
+) {
+    // for (mut collision, colliding_entities) in query.iter_mut() {
+    //
+    //
+    // }
+
+    for contacts in collisions.iter() {
+        let Ok([collider_parent1, collider_parent2]) =
+            collider_parents.get_many([contacts.entity1, contacts.entity2])
+            else {
+                continue;
+            };
+
+        commands.entity(contacts.entity1).despawn()
+    }
 }

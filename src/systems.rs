@@ -5,6 +5,12 @@ use crate::resources::*;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
+use bevy::{prelude::*, render::render_resource::PrimitiveTopology, sprite::MaterialMesh2dBundle};
+use bevy::math::vec3;
+
+use bevy_xpbd_2d::{math::*, prelude::*};
+use rand::random;
+
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: f32 = 64.0;
 // Player sprite size.
@@ -241,14 +247,18 @@ pub fn spawn_bullet(
     if keyboard_input.just_pressed(KeyCode::Space) {
         // Get the player position, so we know where to spawn the bullet
         if let Ok(player) = player_query.get_single() {
-            commands.spawn((
-                SpriteBundle {
-                    transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0),
+            commands.spawn(
+                (SpriteBundle {
+                    transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0).with_scale(vec3(10.0, 10.0, 10.0)),
                     texture: asset_server.load("sprites/bullet.png"),
                     ..default()
+                }, Bullet {
+                    speed: 500.0,
                 },
-                Bullet { speed: 300.0 },
-            ));
+                 Sensor,
+                 RigidBody::Dynamic,
+                 Collider::cuboid(100.0, 100.0)),
+            );
         }
 
         let bullet_fire = "audio/schieten.ogg";
@@ -363,6 +373,9 @@ pub fn spawn_enemies(
                             level,
                             is_dead: false,
                         },
+                        Sensor,
+                        RigidBody::Dynamic,
+                        Collider::cuboid(10.0, 10.0)
                     ));
                 }
             }
