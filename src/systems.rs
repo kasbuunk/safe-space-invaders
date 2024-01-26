@@ -392,18 +392,19 @@ pub fn spawn_enemies(
 pub fn enemy_movements(
     mut enemies_query: Query<&mut Transform, With<Enemy>>,
     enemy_info: ResMut<EnemyInfo>,
+    time: Res<Time>,
 ) {
-    const STEP: f32 = 0.5;
+    const STEP: f32 = 50.0;
     for mut enemy in &mut enemies_query {
         match enemy_info.stage {
             EnemyStage::RIGHT => {
-                enemy.translation.x += STEP;
+                enemy.translation.x += STEP * time.delta_seconds();
             }
             EnemyStage::DOWN(_, _) => {
-                enemy.translation.y -= STEP;
+                enemy.translation.y -= STEP * time.delta_seconds();
             }
             EnemyStage::LEFT => {
-                enemy.translation.x -= STEP;
+                enemy.translation.x -= STEP * time.delta_seconds();
             }
         }
     }
