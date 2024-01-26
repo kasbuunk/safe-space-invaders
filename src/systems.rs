@@ -457,10 +457,17 @@ pub fn update_enemy_info(
 
 pub fn enemy_hit_player(
     mut game_over_event_writer: EventWriter<GameOver>,
+    mut game: ResMut<Game>,
     mut lives: ResMut<Lives>,
     keyboard_input: Res<Input<KeyCode>>,
     score: Res<Score>,
 ) {
+
+    if keyboard_input.pressed(KeyCode::W) {
+        game_over_event_writer.send(GameOver { won: true, score: score.value });
+        return;
+    }
+
     if keyboard_input.pressed(KeyCode::L) {
         if lives.value <= 0 {
             game_over_event_writer.send(GameOver { won: false, score: score.value });
@@ -536,7 +543,6 @@ pub fn handle_game_over(
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
     mut game_over_event_reader: EventReader<GameOver>,
-    mut intro_screen_query: Query<Entity, With<IntroScreen>>,
     player_query: Query<Entity, With<Player>>,
     castle_query: Query<Entity, With<Castle>>,
     enemy_query: Query<Entity, With<Enemy>>,
@@ -559,7 +565,7 @@ pub fn handle_game_over(
 
             commands.spawn(
                 (SpriteBundle {
-                    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0).with_scale(Vec3::splat(0.25)),
+                    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0).with_scale(Vec3::splat(0.21)),
                     texture: asset_server.load(screen_asset_filename),
                     ..default()
                 },
@@ -605,7 +611,9 @@ pub fn handle_game_over(
                 }),
             ));
 
-            // show restart button
+            // [todo] on key press (space):
+            // despawn game over screens
+            // set `game.started = false;` -> will trigger new game
         },
         None => (),
     };
