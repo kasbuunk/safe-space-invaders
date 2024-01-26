@@ -50,7 +50,7 @@ fn main() {
         .add_systems(Startup, start_menu_music)
         .add_systems(Update, spawn_game_background)
         .add_systems(Update, spawn_bullet)
-        .add_systems(Update, check_colliding_entities)
+        .add_systems(Update, bullet_hits_enemy)
         .add_systems(Update, move_bullet)
         .add_systems(Update, move_enemy_bullet)
         .add_systems(Update, setup_lives)
