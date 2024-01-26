@@ -1,7 +1,13 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct Intro {}
+pub struct IntroScreen {}
+
+#[derive(Component)]
+pub struct GameScreen {}
+
+#[derive(Component)]
+pub struct GameOverScreen {}
 
 #[derive(Component)]
 pub struct MenuMusic {}

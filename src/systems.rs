@@ -24,7 +24,7 @@ const AMOUNT_OF_ROWS: u32 = 5;
 const AMOUNT_OF_ENEMIES: u32 = 10;
 const ENEMY_SIZE: f32 = 32.0;
 
-pub fn spawn_intro(
+pub fn spawn_game_intro(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
@@ -38,11 +38,11 @@ pub fn spawn_intro(
             texture: asset_server.load(intro_asset_filename),
             ..default()
         },
-        Intro {},
+        IntroScreen {},
     ));
 }
 
-pub fn spawn_background(
+pub fn spawn_game_background(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
@@ -53,11 +53,14 @@ pub fn spawn_background(
             let intro_asset_filename = "images/background.png";
             let window: &Window = window_query.get_single().unwrap();
 
-            commands.spawn(SpriteBundle {
-                transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, -10.0),
-                texture: asset_server.load(intro_asset_filename),
-                ..default()
-            });
+            commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, -10.0),
+                    texture: asset_server.load(intro_asset_filename),
+                    ..default()
+                },
+                GameScreen {},
+            ));
         }
         None => (),
     }
@@ -68,7 +71,7 @@ pub fn start_game(
     keyboard_input: Res<Input<KeyCode>>,
     time: Res<Time>,
     mut start_game_event_writer: EventWriter<StartGame>,
-    mut intro_query: Query<(Entity, &Transform), With<Intro>>,
+    mut intro_query: Query<(Entity, &Transform), With<IntroScreen>>,
     mut game: ResMut<Game>,
 ) {
     if keyboard_input.pressed(KeyCode::Space) && !game.started {
@@ -460,7 +463,7 @@ pub fn enemy_hit_player(
 ) {
     if keyboard_input.pressed(KeyCode::L) {
         if lives.value <= 0 {
-            game_over_event_writer.send(GameOver { score: score.value });
+            game_over_event_writer.send(GameOver { won: false, score: score.value });
             return;
         }
 
@@ -526,4 +529,84 @@ pub fn check_colliding_entities(
             }
         }
     }
+}
+
+pub fn handle_game_over(
+    mut commands: Commands, 
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    mut game_over_event_reader: EventReader<GameOver>,
+    mut intro_screen_query: Query<Entity, With<IntroScreen>>,
+    player_query: Query<Entity, With<Player>>,
+    castle_query: Query<Entity, With<Castle>>,
+    enemy_query: Query<Entity, With<Enemy>>,
+    mut high_score: ResMut<HighScore>,
+    score: Res<Score>,
+) {
+    match game_over_event_reader.read().next() {
+        Some(event) => {
+
+            let mut screen_asset_filename = "images/game-won.png";
+            let window: &Window = window_query.get_single().unwrap();
+                
+            if event.won {
+                if score.value > high_score.value {
+                    high_score.value = score.value;
+                }
+            } else {
+                screen_asset_filename = "images/game-lost.png";
+            }
+
+            commands.spawn(
+                (SpriteBundle {
+                    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0).with_scale(Vec3::splat(0.25)),
+                    texture: asset_server.load(screen_asset_filename),
+                    ..default()
+                },
+                GameOverScreen {},
+            ));
+
+            for player in player_query.iter() {
+                commands.entity(player).despawn();
+            }
+
+            for castle in castle_query.iter() {
+                commands.entity(castle).despawn();
+            }
+
+            for enemy in enemy_query.iter() {
+                commands.entity(enemy).despawn();
+            }
+
+            commands.spawn((
+                TextBundle::from_sections([
+                    TextSection::new(
+                        format!("Score: {0}", score.value),
+                        TextStyle {
+                            font: asset_server.load("fonts/Sanspix-Regular.ttf"),
+                            font_size: 30.0,
+                            ..default()
+                        },
+                    ),
+                    TextSection::from_style(
+                        TextStyle {
+                            font: asset_server.load("fonts/Sanspix-Regular.ttf"),
+                            font_size: 30.0,
+                            ..default()
+                        },
+                    ),
+                ])
+                .with_text_alignment(TextAlignment::Center)
+                .with_style(Style {
+                    position_type: PositionType::Absolute,
+                    top: Val::Px(100.0),
+                    left: Val::Px(100.0),
+                    ..default()
+                }),
+            ));
+
+            // show restart button
+        },
+        None => (),
+    };
 }

@@ -23,6 +23,17 @@ impl Default for Score {
 }
 
 #[derive(Resource)]
+pub struct HighScore {
+    pub value: u32,
+}
+
+impl Default for HighScore {
+    fn default() -> HighScore {
+        HighScore { value: 0 }
+    }
+}
+
+#[derive(Resource)]
 pub struct Lives {
     pub value: u32,
 }
