@@ -120,7 +120,7 @@ pub fn spawn_castles(
                 commands.spawn((
                     SpriteBundle {
                         transform: Transform::from_xyz(x, y, 0.0),
-                        texture: asset_server.load("sprites/castle_2.png"),
+                        texture: asset_server.load("sprites/castle.png"),
                         ..default()
                     },
                     Castle { hitpoints: 2 },
@@ -149,19 +149,6 @@ pub fn bullet_hit_castle(
 
             // Despawn Castle with these hitpoints.
             commands.entity(castle).despawn();
-
-            let new_sprite_filename = format!("sprites/castle_{}.png", new_hitpoints);
-            // Spawn new Castle with with new hitpoints.
-            commands.spawn((
-                SpriteBundle {
-                    transform: Transform::from_xyz(position_x, position_y, 0.0),
-                    texture: asset_server.load(new_sprite_filename),
-                    ..default()
-                },
-                Castle {
-                    hitpoints: new_hitpoints,
-                },
-            ));
         }
     }
 }
