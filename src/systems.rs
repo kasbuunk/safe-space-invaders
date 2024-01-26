@@ -235,7 +235,7 @@ pub fn bullet_hit_castle(mut commands: Commands, mut castle_query: Query<(Entity
         if castle_was_hit {
             castle.hitpoints -= 1;
             if castle.hitpoints == 0 {
-                // Despawn Castle with these hitpoints.
+                // Despawn Castle with 0 hitpoints.
                 commands.entity(castle_entity).despawn();
             }
         }
@@ -247,7 +247,7 @@ pub fn spawn_bullet(
     keyboard_input: Res<Input<KeyCode>>,
     player_query: Query<&mut Transform, With<Player>>,
     asset_server: Res<AssetServer>,
-    mut game: ResMut<Game>,
+    game: ResMut<Game>,
 ) {
     // Wait until the player presses space
     if keyboard_input.just_pressed(KeyCode::Space) && game.started {
@@ -515,7 +515,7 @@ pub fn update_lives(mut query: Query<&mut Text, With<LivesCounter>>, lives: Res<
 pub fn check_colliding_entities(
     mut commands: Commands,
     mut collision_query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
-    mut enemy_query: Query<&Enemy>,
+    enemy_query: Query<&Enemy>,
 ) {
     for ((entity, mut bullet), colliding_entities) in collision_query.iter_mut() {
         for colliding_entity in colliding_entities.iter() {
