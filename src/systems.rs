@@ -168,7 +168,7 @@ pub fn spawn_bullet(
                     texture: asset_server.load("sprites/bullet.png"),
                     ..default()
                 }, Bullet {
-                    speed: 10,
+                    speed: 300.0,
                 }),
             );
         }
