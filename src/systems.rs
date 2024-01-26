@@ -9,6 +9,8 @@ use rand::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: f32 = 360.0; // Player sprite size.
+pub const CASTLE_SIZE: f32 = 64.0;
+pub const NUMBER_OF_CASTLES: u32 = 4;
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -42,7 +44,23 @@ pub fn spawn_castles(
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
 ) {
+    let window: &Window = window_query.get_single().unwrap();
+
+    for _ in 0..NUMBER_OF_CASTLES {
+        let random_x = random::<f32>() * window.width();
+        let random_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            SpriteBundle {
+                transform: Transform::from_xyz(random_x, random_y, 0.0),
+                texture: asset_server.load("sprites/castle_2.png"),
+                ..default()
+            },
+            Castle { hitpoints: 2 },
+        ));
+    }
 }
+
 pub fn spawn_bullet(mut comands: Commands) {
     comands.spawn(
         (Bullet {
@@ -59,7 +77,6 @@ pub fn move_bullet(mut commands: Commands, mut query: Query<(Entity, &mut Bullet
         }
     }
 }
-
 
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
