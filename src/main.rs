@@ -52,6 +52,7 @@ fn main() {
         .add_systems(Update, spawn_enemies)
         .add_systems(Update, player_movement)
         .add_systems(Update, enemy_movements)
+        .add_systems(Update, update_enemy_info)
         .add_systems(Update, confine_player_movement)
         .add_systems(Update, enemy_hit_player)
         .add_systems(Update, bullet_hit_castle)

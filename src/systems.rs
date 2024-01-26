@@ -305,13 +305,55 @@ pub fn enemy_movements(
             EnemyStage::RIGHT => {
                 enemy.translation.x += STEP;
             },
-            EnemyStage::DOWN => {
-                enemy.translation.y += STEP;
+            EnemyStage::DOWN(_, _) => {
+                enemy.translation.y -= STEP;
             },
             EnemyStage::LEFT => {
                 enemy.translation.x -= STEP;
             },
         }
+    }
+}
+
+pub fn update_enemy_info(
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    enemies_query: Query<&Transform, With<Enemy>>,
+    mut enemy_info: ResMut<EnemyInfo>,
+) {
+    if let EnemyStage::DOWN(down_amount, go_left) = enemy_info.stage {
+        enemy_info.stage = if down_amount > 0 {
+            EnemyStage::DOWN(down_amount - 1, go_left)
+        } else if go_left {
+            EnemyStage::LEFT
+        } else {
+            EnemyStage::RIGHT
+        };
+
+        return;
+    }
+
+    let window = window_query.get_single().unwrap();
+
+    let mut max_x = f32::MIN;
+    let mut min_x = f32::MAX;
+
+    for enemy in &enemies_query {
+        if enemy.translation.x > max_x {
+            max_x = enemy.translation.x;
+        }
+
+        if enemy.translation.x < min_x {
+            min_x = enemy.translation.x;
+        }
+    }
+
+    const DOWN_AMOUNT: usize = 25; // 15px down
+
+    let size = ENEMY_SIZE / 2.0;
+    if min_x <= 0.5 + size {
+        enemy_info.stage = EnemyStage::DOWN(DOWN_AMOUNT, false);
+    } else if max_x >= window.width() - 0.5 - size {
+        enemy_info.stage = EnemyStage::DOWN(DOWN_AMOUNT, true);
     }
 }
 

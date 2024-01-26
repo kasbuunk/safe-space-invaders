@@ -33,10 +33,11 @@ impl Default for Lives {
     }
 }
 
+#[derive(Debug)]
 pub enum EnemyStage {
     RIGHT,
-    DOWN,
     LEFT,
+    DOWN(usize, bool),
 }
 
 #[derive(Resource)]
