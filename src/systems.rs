@@ -74,7 +74,7 @@ pub fn start_menu_music(mut commands: Commands, asset_server: Res<AssetServer>) 
     let menu_music_filename = "audio/menu-music-loop.ogg";
     commands.spawn(AudioBundle {
         source: asset_server.load(menu_music_filename),
-        settings: PlaybackSettings::ONCE,
+        settings: PlaybackSettings::LOOP,
         ..default()
     });
 }
