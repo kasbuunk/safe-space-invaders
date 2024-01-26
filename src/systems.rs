@@ -113,6 +113,7 @@ pub fn handle_game_start_music(
         None => (),
     }
 }
+
 pub fn handle_game_over_music(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -231,7 +232,7 @@ pub fn bullet_hit_castle(
 }
 
 pub fn spawn_bullet(
-    mut comands: Commands,
+    mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
     player_query: Query<&mut Transform, With<Player>>,
     asset_server: Res<AssetServer>,
@@ -240,7 +241,7 @@ pub fn spawn_bullet(
     if keyboard_input.just_pressed(KeyCode::Space) {
         // Get the player position, so we know where to spawn the bullet
         if let Ok(player) = player_query.get_single() {
-            comands.spawn((
+            commands.spawn((
                 SpriteBundle {
                     transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0),
                     texture: asset_server.load("sprites/bullet.png"),
@@ -249,6 +250,13 @@ pub fn spawn_bullet(
                 Bullet { speed: 300.0 },
             ));
         }
+
+        let bullet_fire = "audio/schieten.ogg";
+        commands.spawn(AudioBundle {
+            source: asset_server.load(bullet_fire),
+            settings: PlaybackSettings::ONCE,
+            ..default()
+        });
     }
 }
 
