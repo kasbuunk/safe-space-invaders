@@ -3,14 +3,15 @@ mod events;
 mod resources;
 mod systems;
 
-use events::*;
-use resources::*;
 use systems::*;
 
 use bevy::prelude::*;
 
+use bevy_xpbd_2d::prelude::PhysicsPlugins;
+
 fn main() {
-    App::new().add_plugins(DefaultPlugins)
-    .add_systems(Startup, spawn_player)
-    .run();
+    App::new()
+        .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
+        .add_systems(Startup, spawn_player)
+        .run();
 }
