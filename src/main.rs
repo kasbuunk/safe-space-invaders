@@ -73,13 +73,16 @@ fn main() {
 fn check_colliding_entities(
     mut commands: Commands,
     mut query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
-    enemy_query: Query<&Enemy>,
+    mut enemy_query: Query<&Enemy>,
 ) {
     for ((entity, mut bullet), colliding_entities) in query.iter_mut() {
         for colliding_entity in colliding_entities.iter() {
             if enemy_query.get(*colliding_entity).is_ok() {
                 commands.entity(*colliding_entity).despawn();
+                commands.entity(entity).despawn();
+                return
             }
         }
+
     }
 }

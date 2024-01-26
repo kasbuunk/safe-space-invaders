@@ -254,7 +254,7 @@ pub fn spawn_bullet(
         if let Ok(player) = player_query.get_single() {
             commands.spawn(
                 (SpriteBundle {
-                    transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0).with_scale(vec3(10.0, 10.0, 10.0)),
+                    transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0),
                     texture: asset_server.load("sprites/bullet.png"),
                     ..default()
                 }, Bullet {
@@ -262,7 +262,7 @@ pub fn spawn_bullet(
                 },
                  Sensor,
                  RigidBody::Dynamic,
-                 Collider::cuboid(100.0, 100.0)),
+                 Collider::cuboid(15.0, 10.0)),
             );
         }
 
