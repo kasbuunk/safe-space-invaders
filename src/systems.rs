@@ -6,7 +6,8 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
 pub const PLAYER_SPEED: f32 = 500.0;
-pub const PLAYER_SIZE: f32 = 64.0; // Player sprite size.
+pub const PLAYER_SIZE: f32 = 64.0;
+// Player sprite size.
 pub const CASTLE_SIZE: f32 = 64.0;
 pub const NUMBER_OF_CASTLES: u32 = 4;
 
@@ -47,6 +48,7 @@ pub fn spawn_background(
         }),
     );
 }
+
 
 pub fn start_game(
     mut commands: Commands,
@@ -152,39 +154,40 @@ pub fn bullet_hit_castle(
     }
 }
 
-pub fn spawn_bullet(
-    mut comands: Commands,
-    keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<&Transform, With<Player>>,
-    asset_server: Res<AssetServer>,
+pub fn spawn_bullet(mut comands: Commands,
+                    keyboard_input: Res<Input<KeyCode>>,
+                    player_query: Query<&mut Transform, With<Player>>,
+                    asset_server: Res<AssetServer>,
 ) {
     // Wait until the player presses space
     if keyboard_input.just_pressed(KeyCode::Space) {
         // Get the player position, so we know where to spawn the bullet
-        if let Ok(mut player) = player_query.get_single_mut() {
-            println!("Space pressed and we are shooting!");
-            comands.spawn((
-                SpriteBundle {
+        if let Ok(player) = player_query.get_single() {
+            comands.spawn(
+                (SpriteBundle {
                     transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0),
                     texture: asset_server.load("sprites/bullet.png"),
                     ..default()
-                },
-                Bullet {
-                    position: Vec2::new(player.translation.x, player.translation.y),
-                    speed: 2,
-                },
-            ));
-        };
+                }, Bullet {
+                    speed: 10,
+                }),
+            );
+        }
     }
 }
 
-pub fn move_bullet(mut commands: Commands, mut query: Query<(Entity, &mut Bullet)>) {
-    for (entity, mut bullet) in query.iter_mut() {
-        bullet.position.y += bullet.speed as f32;
+pub fn move_bullet(mut commands: Commands,
+                   mut bullet_query: Query<(&mut Transform, Entity), With<Bullet>>,
+                   time: Res<Time>,
+) {
+    for bullet in bullet_query.iter_mut() {
+        let mut bullet_transform = bullet.0;
+        let mut bullet_entity = bullet.1;
+        bullet_transform.translation.y += 100f32 * time.delta_seconds();
 
-        // Despawn if its outside of the screen
-        if bullet.position.y > 800f32 {
-            commands.entity(entity).despawn();
+        // Despawn if it's outside the screen
+        if bullet_transform.translation.y > WINDOW_HEIGHT {
+            // Find command to remove
         }
     }
 }
@@ -195,6 +198,7 @@ pub fn player_movement(
     time: Res<Time>,
 ) {
     for mut transform in &mut query {
+
         let mut direction = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
