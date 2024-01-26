@@ -49,7 +49,6 @@ pub fn spawn_background(
     );
 }
 
-
 pub fn start_game(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
@@ -65,6 +64,15 @@ pub fn start_game(
         }
         game.started = true
     }
+}
+
+pub fn start_menu_music(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let menu_music_filename = "audio/menu-music-loop.ogg";
+    commands.spawn(AudioBundle {
+        source: asset_server.load(menu_music_filename),
+        settings: PlaybackSettings::ONCE,
+        ..default()
+    });
 }
 
 pub fn spawn_player(
@@ -162,22 +170,22 @@ pub fn spawn_bullet(
     if keyboard_input.just_pressed(KeyCode::Space) {
         // Get the player position, so we know where to spawn the bullet
         if let Ok(player) = player_query.get_single() {
-            comands.spawn(
-                (SpriteBundle {
+            comands.spawn((
+                SpriteBundle {
                     transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0),
                     texture: asset_server.load("sprites/bullet.png"),
                     ..default()
-                }, Bullet {
-                    speed: 300.0,
-                }),
-            );
+                },
+                Bullet { speed: 300.0 },
+            ));
         }
     }
 }
 
-pub fn move_bullet(mut commands: Commands,
-                   mut bullet_query: Query<(&mut Transform, Entity, &mut Bullet), With<Bullet>>,
-                   time: Res<Time>,
+pub fn move_bullet(
+    mut commands: Commands,
+    mut bullet_query: Query<(&mut Transform, Entity, &mut Bullet), With<Bullet>>,
+    time: Res<Time>,
 ) {
     for bullet in bullet_query.iter_mut() {
         let mut bullet_transform = bullet.0;
@@ -198,7 +206,6 @@ pub fn player_movement(
     time: Res<Time>,
 ) {
     for mut transform in &mut query {
-
         let mut direction = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
