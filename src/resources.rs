@@ -21,3 +21,8 @@ impl Default for Lives {
         Lives { value: 3 }
     }
 }
+
+#[derive(Resource)]
+pub struct EnemyInfo {
+    pub enemy_directions: Vec2,
+}

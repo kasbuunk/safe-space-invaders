@@ -139,6 +139,41 @@ pub fn confine_player_movement(
     }
 }
 
+pub fn spawn_enemies(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    // TODO: make configurable
+    const AMOUNT_OF_ROWS: u32 = 5;
+    const ENEMY_SIZE: f32 = 64.0;
+    let top_offset = window.height() / 4.0;
+
+    println!("hi");
+    for i in 0..AMOUNT_OF_ROWS {
+        let level = AMOUNT_OF_ROWS - i;
+        let size = ENEMY_SIZE / level as f32;
+        println!("{i}, {level}, {size}");
+        for j in 0..(window.width() / size) as usize {
+            let new_j = (j as f32 * size);
+            println!("{top_offset} {level} {i} {j} {size} {new_j}");
+            commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(new_j, i as f32 * ENEMY_SIZE, 0.0),
+                    texture: asset_server.load("sprites/player.png"),
+                    ..default()
+                },
+                Enemy {
+                    level,
+                    is_dead: false,
+                },
+            ));
+        }
+    }
+}
+
 pub fn enemy_hit_player(
     mut game_over_event_writer: EventWriter<GameOver>,
     mut lives: ResMut<Lives>,
