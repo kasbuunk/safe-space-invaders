@@ -46,13 +46,13 @@ pub fn spawn_castles(
 ) {
     let window: &Window = window_query.get_single().unwrap();
 
-    for _ in 0..NUMBER_OF_CASTLES {
-        let random_x = random::<f32>() * window.width();
-        let random_y = random::<f32>() * window.height();
+    for index in 0..NUMBER_OF_CASTLES {
+        let x = window.width() / (NUMBER_OF_CASTLES + 1) as f32 * (index + 1) as f32;
+        let y = window.height() / 4.0;
 
         commands.spawn((
             SpriteBundle {
-                transform: Transform::from_xyz(random_x, random_y, 0.0),
+                transform: Transform::from_xyz(x, y, 0.0),
                 texture: asset_server.load("sprites/castle_2.png"),
                 ..default()
             },
