@@ -73,21 +73,13 @@ fn main() {
 fn check_colliding_entities(
     mut commands: Commands,
     mut query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
-    collider_parents: Query<&ColliderParent>,
-    collisions: Res<Collisions>,
+    enemy_query: Query<&Enemy>,
 ) {
-    // for (mut collision, colliding_entities) in query.iter_mut() {
-    //
-    //
-    // }
-
-    for contacts in collisions.iter() {
-        let Ok([collider_parent1, collider_parent2]) =
-            collider_parents.get_many([contacts.entity1, contacts.entity2])
-            else {
-                continue;
-            };
-
-        commands.entity(contacts.entity1).despawn()
+    for ((entity, mut bullet), colliding_entities) in query.iter_mut() {
+        for colliding_entity in colliding_entities.iter() {
+            if enemy_query.get(*colliding_entity).is_ok() {
+                commands.entity(*colliding_entity).despawn();
+            }
+        }
     }
 }
