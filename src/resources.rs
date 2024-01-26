@@ -1,13 +1,15 @@
 use bevy::prelude::*;
 
-#[derive(Resource)]
-pub struct Game {
-    pub started: bool,
+#[derive(Resource, PartialEq, Eq)]
+pub enum Game {
+    INTRO,
+    STARTED,
+    ENDED,
 }
 
 impl Default for Game {
     fn default() -> Game {
-        Game { started: false }
+        Game::INTRO
     }
 }
 

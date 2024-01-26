@@ -74,12 +74,12 @@ pub fn start_game(
     mut intro_query: Query<(Entity, &Transform), With<IntroScreen>>,
     mut game: ResMut<Game>,
 ) {
-    if keyboard_input.pressed(KeyCode::Space) && !game.started {
+    if keyboard_input.pressed(KeyCode::Space) && *game == Game::INTRO {
         start_game_event_writer.send(StartGame {});
         if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
             commands.entity(intro_entity).despawn();
         }
-        game.started = true
+        *game = Game::STARTED;
     }
 }
 
@@ -250,10 +250,10 @@ pub fn spawn_bullet(
     keyboard_input: Res<Input<KeyCode>>,
     player_query: Query<&mut Transform, With<Player>>,
     asset_server: Res<AssetServer>,
-    game: ResMut<Game>,
+    game: Res<Game>,
 ) {
     // Wait until the player presses space
-    if keyboard_input.just_pressed(KeyCode::Space) && game.started {
+    if keyboard_input.just_pressed(KeyCode::Space) && *game == Game::STARTED {
         // Get the player position, so we know where to spawn the bullet
         if let Ok(player) = player_query.get_single() {
             commands.spawn((
@@ -543,6 +543,7 @@ pub fn handle_game_over(
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
     mut game_over_event_reader: EventReader<GameOver>,
+    mut game: ResMut<Game>,
     player_query: Query<Entity, With<Player>>,
     castle_query: Query<Entity, With<Castle>>,
     enemy_query: Query<Entity, With<Enemy>>,
@@ -551,6 +552,8 @@ pub fn handle_game_over(
 ) {
     match game_over_event_reader.read().next() {
         Some(event) => {
+
+            *game = Game::ENDED;
 
             let mut screen_asset_filename = "images/game-won.png";
             let window: &Window = window_query.get_single().unwrap();
