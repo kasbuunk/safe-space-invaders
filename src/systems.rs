@@ -1,4 +1,6 @@
 use crate::components::*;
+use crate::events::*;
+use crate::resources::*;
 
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -135,4 +137,17 @@ pub fn confine_player_movement(
 
         player_transform.translation = translation;
     }
+}
+
+pub fn enemy_hit_player(
+    mut game_over_event_writer: EventWriter<GameOver>,
+    mut lives: ResMut<Lives>,
+    score: Res<Score>,
+) {
+    if lives.value <= 0 {
+        game_over_event_writer.send(GameOver { score: score.value });
+        return;
+    }
+
+    lives.value -= 1;
 }

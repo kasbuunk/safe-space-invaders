@@ -40,5 +40,6 @@ fn main() {
         .add_systems(Update, move_bullet)
         .add_systems(Update, player_movement)
         .add_systems(Update, confine_player_movement)
+        .add_systems(Update, enemy_hit_player)
         .run();
 }
