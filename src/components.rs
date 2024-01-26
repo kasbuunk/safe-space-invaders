@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
+pub struct Intro {}
+
+#[derive(Component)]
 pub struct Player {}
 
 #[derive(Component)]

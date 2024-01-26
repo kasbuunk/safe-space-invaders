@@ -6,6 +6,7 @@ mod systems;
 use events::*;
 use systems::*;
 use resources::*;
+use events::*;
 
 use bevy::prelude::*;
 use bevy::ui::AlignSelf::Start;
@@ -35,17 +36,19 @@ fn main() {
             }),
             ..default()
         }))
+        .init_resource::<Game>()
         .init_resource::<Score>()
         .init_resource::<Lives>()
         .add_event::<GameOver>()
-        .add_systems(Startup, spawn_player)
+        .add_event::<StartGame>()
         .add_systems(Startup, spawn_camera)
-        .add_systems(Startup, spawn_castles)
+        .add_systems(Startup, spawn_intro)
         .add_systems(Startup, spawn_enemies)
+        .add_systems(Update, start_game)
+        .add_systems(Update, spawn_player)
+        .add_systems(Update, spawn_castles)
         .add_systems(Startup, spawn_bullet)
         .add_systems(Startup, move_bullet)
-        .add_systems(Update, spawn_bullet)
-        .add_systems(Update, move_bullet)
         .add_systems(Update, player_movement)
         .add_systems(Update, confine_player_movement)
         .add_systems(Update, enemy_hit_player)

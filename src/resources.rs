@@ -1,6 +1,17 @@
 use bevy::prelude::*;
 
 #[derive(Resource)]
+pub struct Game {
+    pub started: bool,
+}
+
+impl Default for Game {
+    fn default() -> Game {
+        Game { started: false }
+    }
+}
+
+#[derive(Resource)]
 pub struct Score {
     pub value: u32,
 }

@@ -6,30 +6,71 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
 pub const PLAYER_SPEED: f32 = 500.0;
-pub const PLAYER_SIZE: f32 = 360.0;
-// Player sprite size.
+pub const PLAYER_SIZE: f32 = 64.0; // Player sprite size.
 pub const CASTLE_SIZE: f32 = 64.0;
 pub const NUMBER_OF_CASTLES: u32 = 4;
 
 pub const WINDOW_WIDTH: f32 = 600.0;
 pub const WINDOW_HEIGHT: f32 = 800.0;
 
-pub fn spawn_player(
+pub fn spawn_intro(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
 ) {
-    let player_asset_filename = "sprites/player.png";
+    let intro_asset_filename = "images/intro.png";
     let window: &Window = window_query.get_single().unwrap();
 
     commands.spawn((
         SpriteBundle {
             transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
-            texture: asset_server.load(player_asset_filename),
+            texture: asset_server.load(intro_asset_filename),
             ..default()
         },
-        Player {},
+        Intro {},
     ));
+}
+
+
+pub fn start_game(
+    mut commands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
+    time: Res<Time>,
+    mut start_game_event_writer: EventWriter<StartGame>,
+    mut intro_query: Query<(Entity, &Transform), With<Intro>>,
+    mut game: ResMut<Game>,
+) {
+        if keyboard_input.pressed(KeyCode::Space) {
+            start_game_event_writer.send(StartGame {});
+            if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
+                commands.entity(intro_entity).despawn();
+            }
+            game.started = true
+        }
+}
+
+pub fn spawn_player(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    mut start_game_event_reader: EventReader<StartGame>,
+) {
+    match start_game_event_reader.read().next() {
+        Some(event) => {
+            let player_asset_filename = "sprites/spaceship.png";
+            let window: &Window = window_query.get_single().unwrap();
+        
+            commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+                    texture: asset_server.load(player_asset_filename),
+                    ..default()
+                },
+                Player {},
+            ));
+        }
+        None => (),
+    }
 }
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
@@ -45,21 +86,27 @@ pub fn spawn_castles(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
+    mut start_game_event_reader: EventReader<StartGame>,
 ) {
-    let window: &Window = window_query.get_single().unwrap();
+    match start_game_event_reader.read().next() {
+        Some(event) => {
+            let window: &Window = window_query.get_single().unwrap();
 
-    for index in 0..NUMBER_OF_CASTLES {
-        let x = window.width() / (NUMBER_OF_CASTLES + 1) as f32 * (index + 1) as f32;
-        let y = window.height() / 4.0;
+            for index in 0..NUMBER_OF_CASTLES {
+                let x = window.width() / (NUMBER_OF_CASTLES + 1) as f32 * (index + 1) as f32;
+                let y = window.height() / 4.0;
 
-        commands.spawn((
-            SpriteBundle {
-                transform: Transform::from_xyz(x, y, 0.0),
-                texture: asset_server.load("sprites/castle_2.png"),
-                ..default()
-            },
-            Castle { hitpoints: 2 },
-        ));
+                commands.spawn((
+                    SpriteBundle {
+                        transform: Transform::from_xyz(x, y, 0.0),
+                        texture: asset_server.load("sprites/castle_2.png"),
+                        ..default()
+                    },
+                    Castle { hitpoints: 2 },
+                ));
+            }
+        }
+        None => ()
     }
 }
 
@@ -105,7 +152,7 @@ pub fn player_movement(
 ) {
     if let Ok(mut transform) = player_query.get_single_mut() {
         let mut direction = Vec3::ZERO;
-
+        
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
             direction += Vec3::new(-1.0, 0.0, 0.0);
         }
