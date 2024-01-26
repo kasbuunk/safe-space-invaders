@@ -43,3 +43,19 @@ pub fn spawn_castles(
     asset_server: Res<AssetServer>,
 ) {
 }
+pub fn spawn_bullet(mut comands: Commands) {
+    comands.spawn(
+        (Bullet {
+            position: Vec2::new(0.0, 0.0),
+            speed: 10,
+        }),
+    );
+}
+pub fn move_bullet(mut commands: Commands, mut query: Query<(Entity, &mut Bullet)>) {
+    for (entity, mut bullet) in query.iter_mut() {
+        bullet.position.y += bullet.speed as f32;
+        if bullet.position.y > 800.0 {
+            commands.entity(entity).despawn();
+        }
+    }
+}
