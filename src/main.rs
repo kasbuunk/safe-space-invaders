@@ -4,12 +4,10 @@ mod resources;
 mod systems;
 
 use events::*;
-use systems::*;
 use resources::*;
-use events::*;
+use systems::*;
 
 use bevy::prelude::*;
-use bevy::ui::AlignSelf::Start;
 use bevy::window::{PresentMode, WindowTheme};
 
 use bevy_xpbd_2d::prelude::*;
@@ -44,13 +42,14 @@ fn main() {
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, spawn_intro)
         .add_systems(Startup, spawn_enemies)
+        .add_systems(Startup, spawn_bullet)
+        .add_systems(Startup, move_bullet)
         .add_systems(Update, start_game)
         .add_systems(Update, spawn_player)
         .add_systems(Update, spawn_castles)
-        .add_systems(Startup, spawn_bullet)
-        .add_systems(Startup, move_bullet)
         .add_systems(Update, player_movement)
         .add_systems(Update, confine_player_movement)
         .add_systems(Update, enemy_hit_player)
+        .add_systems(Update, bullet_hit_castle)
         .run();
 }

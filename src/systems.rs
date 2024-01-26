@@ -31,7 +31,6 @@ pub fn spawn_intro(
     ));
 }
 
-
 pub fn start_game(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
@@ -40,13 +39,13 @@ pub fn start_game(
     mut intro_query: Query<(Entity, &Transform), With<Intro>>,
     mut game: ResMut<Game>,
 ) {
-        if keyboard_input.pressed(KeyCode::Space) {
-            start_game_event_writer.send(StartGame {});
-            if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
-                commands.entity(intro_entity).despawn();
-            }
-            game.started = true
+    if keyboard_input.pressed(KeyCode::Space) {
+        start_game_event_writer.send(StartGame {});
+        if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
+            commands.entity(intro_entity).despawn();
         }
+        game.started = true
+    }
 }
 
 pub fn spawn_player(
@@ -59,10 +58,14 @@ pub fn spawn_player(
         Some(event) => {
             let player_asset_filename = "sprites/spaceship.png";
             let window: &Window = window_query.get_single().unwrap();
-        
+
             commands.spawn((
                 SpriteBundle {
-                    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+                    transform: Transform::from_xyz(
+                        window.width() / 2.0,
+                        window.height() / 2.0,
+                        0.0,
+                    ),
                     texture: asset_server.load(player_asset_filename),
                     ..default()
                 },
@@ -106,30 +109,67 @@ pub fn spawn_castles(
                 ));
             }
         }
-        None => ()
+        None => (),
     }
 }
 
-pub fn spawn_bullet(mut comands: Commands,
-                    keyboard_input: Res<Input<KeyCode>>,
-                    mut player_query: Query<&Transform, With<Player>>,
-                    asset_server: Res<AssetServer>,
+pub fn bullet_hit_castle(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    castle_query: Query<(Entity, &Transform), With<Castle>>,
+    asset_server: Res<AssetServer>,
+) {
+    for (castle, transform) in castle_query.iter() {
+        let castle_was_hit = false;
+
+        if castle_was_hit {
+            // Decrement hitpoints.
+            // let new_hitpoints = castle.hitpoints;
+            let new_hitpoints = 1;
+            let position_x = 0.0;
+            let position_y = 0.0;
+
+            // Despawn Castle with these hitpoints.
+            commands.entity(castle).despawn();
+
+            let new_sprite_filename = format!("sprites/castle_{}.png", new_hitpoints);
+            // Spawn new Castle with with new hitpoints.
+            commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(position_x, position_y, 0.0),
+                    texture: asset_server.load(new_sprite_filename),
+                    ..default()
+                },
+                Castle {
+                    hitpoints: new_hitpoints,
+                },
+            ));
+        }
+    }
+}
+
+pub fn spawn_bullet(
+    mut comands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut player_query: Query<&Transform, With<Player>>,
+    asset_server: Res<AssetServer>,
 ) {
     // Wait until the player presses space
     if keyboard_input.just_pressed(KeyCode::Space) {
         // Get the player position, so we know where to spawn the bullet
         if let Ok(mut player) = player_query.get_single_mut() {
             println!("Space pressed and we are shooting!");
-            comands.spawn(
-                (SpriteBundle {
+            comands.spawn((
+                SpriteBundle {
                     transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0),
                     texture: asset_server.load("sprites/bullet.png"),
                     ..default()
-                }, Bullet {
+                },
+                Bullet {
                     position: Vec2::new(player.translation.x, player.translation.y),
                     speed: 2,
-                }),
-            );
+                },
+            ));
         };
     }
 }
@@ -152,7 +192,7 @@ pub fn player_movement(
 ) {
     if let Ok(mut transform) = player_query.get_single_mut() {
         let mut direction = Vec3::ZERO;
-        
+
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
             direction += Vec3::new(-1.0, 0.0, 0.0);
         }
