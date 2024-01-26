@@ -8,7 +8,7 @@ pub struct Player {}
 
 #[derive(Component)]
 pub struct Bullet {
-    pub speed: u8,
+    pub speed: f32,
 }
 
 #[derive(Component)]
