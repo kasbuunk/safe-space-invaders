@@ -192,10 +192,11 @@ pub fn move_bullet(mut commands: Commands, mut query: Query<(Entity, &mut Bullet
 
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<&mut Transform, With<Player>>,
+    mut query: Query<&mut Transform, With<Player>>,
     time: Res<Time>,
 ) {
-    if let Ok(mut transform) = player_query.get_single_mut() {
+    for mut transform in &mut query {
+
         let mut direction = Vec3::ZERO;
 
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
