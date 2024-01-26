@@ -17,7 +17,7 @@ fn main() {
         .add_plugins((DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Safe space invaders!".into(),
-                resolution: (800., 600.).into(),
+                resolution: (WINDOW_HEIGHT, WINDOW_WIDTH).into(),
                 present_mode: PresentMode::AutoVsync,
                 // Tells wasm to resize the window according to the available canvas
                 fit_canvas_to_parent: true,
@@ -28,9 +28,6 @@ fn main() {
                     maximize: false,
                     ..Default::default()
                 },
-                // This will spawn an invisible window
-                // The window will be made visible in the make_visible() system after 3 frames.
-                // This is useful when you want to avoid the white window that shows up before the GPU is ready to render the app.
                 visible: true,
                 ..default()
             }),

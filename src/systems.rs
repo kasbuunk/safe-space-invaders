@@ -4,7 +4,8 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
 pub const PLAYER_SPEED: f32 = 500.0;
-pub const PLAYER_SIZE: f32 = 360.0; // Player sprite size.
+pub const PLAYER_SIZE: f32 = 360.0;
+// Player sprite size.
 pub const CASTLE_SIZE: f32 = 64.0;
 pub const NUMBER_OF_CASTLES: u32 = 4;
 
@@ -60,15 +61,21 @@ pub fn spawn_castles(
     }
 }
 
-pub fn spawn_bullet(mut comands: Commands) {
-    /*if keyboard_input.pressed(KeyCode::Space) {
-        comands.spawn(
-            (Bullet {
-                position: Vec2::new(player.translation.x, player.translation.y),
-                speed: 2,
-            }),
-        );
-    };*/
+pub fn spawn_bullet(mut comands: Commands,
+                    keyboard_input: Res<Input<KeyCode>>,
+                    mut player_query: Query<&Transform, With<Player>>,
+) {
+    if let Ok(mut player) = player_query.get_single_mut() {
+        if keyboard_input.pressed(KeyCode::Space) {
+            comands.spawn(
+                (Bullet {
+                    position: Vec2::new(player.translation.x, player.translation.y),
+                    speed: 2,
+                }),
+            );
+            println!("Bullet spawned");
+        };
+    }
 }
 
 pub fn move_bullet(mut commands: Commands, mut query: Query<(Entity, &mut Bullet)>) {
