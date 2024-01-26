@@ -38,6 +38,7 @@ fn main() {
         .init_resource::<Score>()
         .init_resource::<Lives>()
         .init_resource::<EnemyInfo>()
+        .init_resource::<EnemyCatalog>()
         .add_event::<GameOver>()
         .add_event::<StartGame>()
         .add_systems(Startup, spawn_camera)

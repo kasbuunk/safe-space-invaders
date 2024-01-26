@@ -52,3 +52,33 @@ impl Default for EnemyInfo {
         }
     }
 }
+
+#[derive(Resource)]
+pub struct EnemyCatalog {
+    enemy_sprites: Vec<String>,
+}
+
+impl Default for EnemyCatalog {
+    fn default() -> EnemyCatalog {
+        EnemyCatalog {
+            enemy_sprites: vec![
+                "daan".to_string(),
+                "erhan".to_string(),
+                "frank".to_string(),
+                "hus".to_string(),
+                "jeroen".to_string(),
+                "kas".to_string(),
+                "ryan".to_string(),
+                "storm".to_string(),
+            ],
+        }
+    }
+}
+
+impl EnemyCatalog {
+    pub fn get_random_enemy(&self) -> &str {
+        let idx = rand::random::<usize>() % self.enemy_sprites.len();
+
+        &self.enemy_sprites[idx]
+    }
+}

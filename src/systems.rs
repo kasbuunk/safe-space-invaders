@@ -320,6 +320,7 @@ pub fn spawn_enemies(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
+    enemy_catalog: Res<EnemyCatalog>,
     mut start_game_event_reader: EventReader<StartGame>,
 ) {
     match start_game_event_reader.read().next() {
@@ -339,6 +340,7 @@ pub fn spawn_enemies(
                 let size = ENEMY_SIZE as f32 + padding_per_enemy;
                 for j in 0..(window.width() / size) as usize {
                     let new_j = j as f32 * size + window_padding + padding_per_enemy / 2.0;
+                    let enemy = enemy_catalog.get_random_enemy();
                     commands.spawn((
                         SpriteBundle {
                             transform: Transform::from_xyz(
@@ -346,7 +348,7 @@ pub fn spawn_enemies(
                                 top_offset + i as f32 * ENEMY_SIZE,
                                 0.0,
                             ),
-                            texture: asset_server.load("sprites/enemy-character.png"),
+                            texture: asset_server.load(format!("sprites/{enemy}.png")),
                             ..default()
                         },
                         Enemy {
