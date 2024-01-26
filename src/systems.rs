@@ -28,7 +28,6 @@ pub fn spawn_player(
     ));
 }
 
-<<<<<<< Updated upstream
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
 
@@ -38,6 +37,9 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
     });
 }
 
-=======
-pub fn spawn_castles(mut commands: Commands) {}
->>>>>>> Stashed changes
+pub fn spawn_castles(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+}
