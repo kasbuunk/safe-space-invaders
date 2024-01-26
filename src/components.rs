@@ -4,6 +4,15 @@ use bevy::prelude::*;
 pub struct Intro {}
 
 #[derive(Component)]
+pub struct MenuMusic {}
+
+#[derive(Component)]
+pub struct GameStartMusic {}
+
+#[derive(Component)]
+pub struct GameOverMusic {}
+
+#[derive(Component)]
 pub struct Player {}
 
 #[derive(Component)]
@@ -24,3 +33,4 @@ pub struct Enemy {
 
 #[derive(Component)]
 pub struct LivesCounter;
+

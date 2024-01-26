@@ -72,11 +72,77 @@ pub fn start_game(
 
 pub fn start_menu_music(mut commands: Commands, asset_server: Res<AssetServer>) {
     let menu_music_filename = "audio/menu-music-loop.ogg";
-    commands.spawn(AudioBundle {
-        source: asset_server.load(menu_music_filename),
-        settings: PlaybackSettings::LOOP,
-        ..default()
-    });
+    commands.spawn((
+        AudioBundle {
+            source: asset_server.load(menu_music_filename),
+            settings: PlaybackSettings::LOOP,
+            ..default()
+        },
+        MenuMusic {},
+    ));
+}
+
+pub fn handle_game_start_music(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut menu_music_query: Query<Entity, With<MenuMusic>>,
+    mut game_over_music_query: Query<Entity, With<GameOverMusic>>,
+    mut game_start_event_reader: EventReader<StartGame>,
+) {
+    match game_start_event_reader.read().next() {
+        Some(_) => {
+            // Stop other music.
+            if let Ok(music) = menu_music_query.get_single_mut() {
+                commands.entity(music).despawn();
+            }
+            if let Ok(music) = game_over_music_query.get_single_mut() {
+                commands.entity(music).despawn();
+            }
+
+            // Start game over music.
+            let menu_music_filename = "audio/game-start-music.ogg";
+            commands.spawn((
+                AudioBundle {
+                    source: asset_server.load(menu_music_filename),
+                    settings: PlaybackSettings::LOOP,
+                    ..default()
+                },
+                GameStartMusic {},
+            ));
+        }
+        None => (),
+    }
+}
+pub fn handle_game_over_music(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut menu_music_query: Query<Entity, With<MenuMusic>>,
+    mut game_start_music_query: Query<Entity, With<GameStartMusic>>,
+    mut game_over_event_reader: EventReader<GameOver>,
+) {
+    match game_over_event_reader.read().next() {
+        Some(_) => {
+            // Stop other music.
+            if let Ok(music) = menu_music_query.get_single_mut() {
+                commands.entity(music).despawn();
+            }
+            if let Ok(music) = game_start_music_query.get_single_mut() {
+                commands.entity(music).despawn();
+            }
+
+            // Start game over music.
+            let menu_music_filename = "audio/game-over.ogg";
+            commands.spawn((
+                AudioBundle {
+                    source: asset_server.load(menu_music_filename),
+                    settings: PlaybackSettings::ONCE,
+                    ..default()
+                },
+                GameOverMusic {},
+            ));
+        }
+        None => (),
+    }
 }
 
 pub fn spawn_player(
@@ -304,13 +370,13 @@ pub fn enemy_movements(
         match enemy_info.stage {
             EnemyStage::RIGHT => {
                 enemy.translation.x += STEP;
-            },
+            }
             EnemyStage::DOWN(_, _) => {
                 enemy.translation.y -= STEP;
-            },
+            }
             EnemyStage::LEFT => {
                 enemy.translation.x -= STEP;
-            },
+            }
         }
     }
 }
@@ -363,7 +429,6 @@ pub fn enemy_hit_player(
     keyboard_input: Res<Input<KeyCode>>,
     score: Res<Score>,
 ) {
-
     if keyboard_input.pressed(KeyCode::L) {
         if lives.value <= 0 {
             game_over_event_writer.send(GameOver { score: score.value });
@@ -375,9 +440,9 @@ pub fn enemy_hit_player(
 }
 
 pub fn setup_lives(
-    mut commands: Commands, 
+    mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut start_game_event_reader: EventReader<StartGame>
+    mut start_game_event_reader: EventReader<StartGame>,
 ) {
     match start_game_event_reader.read().next() {
         Some(_) => {
@@ -391,13 +456,11 @@ pub fn setup_lives(
                             ..default()
                         },
                     ),
-                    TextSection::from_style(
-                        TextStyle {
-                            font: asset_server.load("fonts/Sanspix-Regular.ttf"),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                    ),
+                    TextSection::from_style(TextStyle {
+                        font: asset_server.load("fonts/Sanspix-Regular.ttf"),
+                        font_size: 30.0,
+                        ..default()
+                    }),
                 ])
                 .with_text_alignment(TextAlignment::Center)
                 .with_style(Style {
@@ -413,10 +476,7 @@ pub fn setup_lives(
     }
 }
 
-pub fn update_lives(
-    mut query: Query<&mut Text, With<LivesCounter>>,
-    lives: Res<Lives>,
-) {
+pub fn update_lives(mut query: Query<&mut Text, With<LivesCounter>>, lives: Res<Lives>) {
     for mut text in &mut query {
         let value = lives.value;
         text.sections[1].value = format!("{value}");

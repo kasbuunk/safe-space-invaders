@@ -57,5 +57,7 @@ fn main() {
         .add_systems(Update, enemy_hit_player)
         .add_systems(Update, bullet_hit_castle)
         .add_systems(Update, update_lives)
+        .add_systems(Update, handle_game_start_music)
+        .add_systems(Update, handle_game_over_music)
         .run();
 }
