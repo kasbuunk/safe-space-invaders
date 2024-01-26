@@ -296,6 +296,24 @@ pub fn move_bullet(
     }
 }
 
+pub fn move_enemy_bullet(
+    mut commands: Commands,
+    mut bullet_query: Query<(&mut Transform, Entity, &mut EnemyBullet), With<EnemyBullet>>,
+    time: Res<Time>,
+) {
+    for bullet in bullet_query.iter_mut() {
+        let mut bullet_transform = bullet.0;
+        let bullet_entity = bullet.1;
+        let bullet_speed = bullet.2.speed;
+        bullet_transform.translation.y -= bullet_speed * time.delta_seconds();
+
+        // Despawn if it's outside the screen
+        if bullet_transform.translation.y < 0.5 {
+            commands.entity(bullet_entity).despawn();
+        }
+    }
+}
+
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<&mut Transform, With<Player>>,
@@ -409,6 +427,41 @@ pub fn enemy_movements(
             EnemyStage::LEFT => {
                 enemy.translation.x -= STEP * time.delta_seconds();
             }
+        }
+    }
+}
+
+pub fn enemy_shoot(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    enemies_query: Query<&Transform, With<Enemy>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    for enemy in &enemies_query {
+        // bullet shoot chance based on height of enemy. between 0 and 1
+        // let shoot_chance = 1.0 - (enemy.translation.y / window.height());
+        let rnd = rand::random::<f32>();
+        if rnd > (0.9998 - (1.0 - (enemy.translation.y / window.height())) / 1000.0) {
+            commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(enemy.translation.x, enemy.translation.y, 0.0),
+                    texture: asset_server.load("sprites/bitterbal.png"),
+                    ..default()
+                },
+                EnemyBullet { speed: 200.0 },
+                Sensor,
+                RigidBody::Dynamic,
+                Collider::ball(21.0),
+            ));
+
+            let bullet_fire = "audio/schieten.ogg";
+            commands.spawn(AudioBundle {
+                source: asset_server.load(bullet_fire),
+                settings: PlaybackSettings::ONCE,
+                ..default()
+            });
         }
     }
 }
