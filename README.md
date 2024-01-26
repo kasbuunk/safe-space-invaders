@@ -40,9 +40,9 @@ cargo run
 Not all features can be picked up immediately, this means that you have to be creative while programming it while your feature is depending on the others.
 #### Must
 - [ ] Empty Entities: Main Character, Alien, Shooting Alien & Castle
-- [ ] Physics library - A physics library is needed. gravity will be disabled and this library is only used for collision detection (maybe other features too for fun things)
+- [x] Physics library - A physics library is needed. gravity will be disabled and this library is only used for collision detection (maybe other features too for fun things)
 - [ ] Character Movement - Move left right (**A** & **D**) through the Physics library (probably changing the velocity) 
-  - [ ] Make the player move right and left 
+  - [x] Make the player move right and left 
   - [ ] Make the aliens move too (similar behaviour like the gameplay of the actual game)
 - [ ] Lives System: if less or equals zero, then rust custom logic (players death or alien death)
 - [ ] UI
