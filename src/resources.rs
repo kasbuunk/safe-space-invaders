@@ -33,7 +33,21 @@ impl Default for Lives {
     }
 }
 
+pub enum EnemyStage {
+    RIGHT,
+    DOWN,
+    LEFT,
+}
+
 #[derive(Resource)]
 pub struct EnemyInfo {
-    pub enemy_directions: Vec2,
+    pub stage: EnemyStage,
+}
+
+impl Default for EnemyInfo {
+    fn default() -> EnemyInfo {
+        EnemyInfo {
+            stage: EnemyStage::RIGHT,
+        }
+    }
 }

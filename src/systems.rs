@@ -14,6 +14,10 @@ pub const NUMBER_OF_CASTLES: u32 = 4;
 pub const WINDOW_WIDTH: f32 = 600.0;
 pub const WINDOW_HEIGHT: f32 = 800.0;
 
+const AMOUNT_OF_ROWS: u32 = 5;
+const AMOUNT_OF_ENEMIES: u32 = 10;
+const ENEMY_SIZE: f32 = 32.0;
+
 pub fn spawn_intro(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -256,11 +260,6 @@ pub fn spawn_enemies(
         Some(_) => {
             let window = window_query.get_single().unwrap();
 
-            // TODO: make configurable
-            const AMOUNT_OF_ROWS: u32 = 5;
-            const AMOUNT_OF_ENEMIES: u32 = 10;
-            const ENEMY_SIZE: f32 = 32.0;
-
             let top_offset = window.height() - ENEMY_SIZE * AMOUNT_OF_ROWS as f32;
 
             let window_padding = ENEMY_SIZE / 2.0;
@@ -293,6 +292,26 @@ pub fn spawn_enemies(
             }
         }
         None => {}
+    }
+}
+
+pub fn enemy_movements(
+    mut enemies_query: Query<&mut Transform, With<Enemy>>,
+    enemy_info: ResMut<EnemyInfo>,
+) {
+    const STEP: f32 = 0.5;
+    for mut enemy in &mut enemies_query {
+        match enemy_info.stage {
+            EnemyStage::RIGHT => {
+                enemy.translation.x += STEP;
+            },
+            EnemyStage::DOWN => {
+                enemy.translation.y += STEP;
+            },
+            EnemyStage::LEFT => {
+                enemy.translation.x -= STEP;
+            },
+        }
     }
 }
 
