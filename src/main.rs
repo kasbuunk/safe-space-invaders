@@ -11,7 +11,7 @@ use bevy_xpbd_2d::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
+        .add_plugins(DefaultPlugins)
         .add_systems(Startup, spawn_player)
         .add_systems(Startup, spawn_camera)
         .insert_resource(Gravity(Vec2::NEG_Y * 0.0))

@@ -7,7 +7,6 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use rand::prelude::*;
 
-
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: f32 = 64.0; // Player sprite size.
 
@@ -29,6 +28,7 @@ pub fn spawn_player(
     ));
 }
 
+<<<<<<< Updated upstream
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
 
@@ -38,3 +38,6 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
     });
 }
 
+=======
+pub fn spawn_castles(mut commands: Commands) {}
+>>>>>>> Stashed changes
