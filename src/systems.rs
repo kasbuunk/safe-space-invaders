@@ -76,13 +76,11 @@ pub fn spawn_player(
             let player_asset_filename = "sprites/spaceship.png";
             let window: &Window = window_query.get_single().unwrap();
 
+            let player_height = window.height() / 8.0;
+
             commands.spawn((
                 SpriteBundle {
-                    transform: Transform::from_xyz(
-                        window.width() / 2.0,
-                        window.height() / 2.0,
-                        0.0,
-                    ),
+                    transform: Transform::from_xyz(window.width() / 2.0, player_height, 0.0),
                     texture: asset_server.load(player_asset_filename),
                     ..default()
                 },
