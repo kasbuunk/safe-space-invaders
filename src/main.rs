@@ -3,18 +3,16 @@ mod events;
 mod resources;
 mod systems;
 
-use std::process::Command;
+use crate::components::{Bullet, Enemy};
 use events::*;
 use resources::*;
 use systems::*;
 
 use bevy::prelude::*;
-
 use bevy::window::{PresentMode, WindowTheme};
 
 use bevy_xpbd_2d::prelude::*;
 use bevy_xpbd_2d::{math::*, prelude::*};
-use crate::components::{Bullet, Enemy};
 
 fn main() {
     App::new()
@@ -49,6 +47,7 @@ fn main() {
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, spawn_intro)
         .add_systems(Startup, start_menu_music)
+        .add_systems(Update, spawn_background)
         .add_systems(Update, spawn_bullet)
         .add_systems(Update, check_colliding_entities)
         .add_systems(Update, move_bullet)
@@ -67,22 +66,4 @@ fn main() {
         .add_systems(Update, handle_game_start_music)
         .add_systems(Update, handle_game_over_music)
         .run();
-}
-
-
-fn check_colliding_entities(
-    mut commands: Commands,
-    mut query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
-    mut enemy_query: Query<&Enemy>,
-) {
-    for ((entity, mut bullet), colliding_entities) in query.iter_mut() {
-        for colliding_entity in colliding_entities.iter() {
-            if enemy_query.get(*colliding_entity).is_ok() {
-                commands.entity(*colliding_entity).despawn();
-                commands.entity(entity).despawn();
-                return
-            }
-        }
-
-    }
 }

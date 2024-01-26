@@ -5,8 +5,8 @@ use crate::resources::*;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use bevy::{prelude::*, render::render_resource::PrimitiveTopology, sprite::MaterialMesh2dBundle};
 use bevy::math::vec3;
+use bevy::{prelude::*, render::render_resource::PrimitiveTopology, sprite::MaterialMesh2dBundle};
 
 use bevy_xpbd_2d::{math::*, prelude::*};
 use rand::random;
@@ -46,17 +46,21 @@ pub fn spawn_background(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
+    mut game_start_event_reader: EventReader<StartGame>,
 ) {
-    let intro_asset_filename = "images/background.png";
-    let window: &Window = window_query.get_single().unwrap();
+    match game_start_event_reader.read().next() {
+        Some(_) => {
+            let intro_asset_filename = "images/background.png";
+            let window: &Window = window_query.get_single().unwrap();
 
-    commands.spawn(
-        (SpriteBundle {
-            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, -10.0),
-            texture: asset_server.load(intro_asset_filename),
-            ..default()
-        }),
-    );
+            commands.spawn(SpriteBundle {
+                transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, -10.0),
+                texture: asset_server.load(intro_asset_filename),
+                ..default()
+            });
+        }
+        None => (),
+    }
 }
 
 pub fn start_game(
@@ -224,10 +228,7 @@ pub fn spawn_castles(
     }
 }
 
-pub fn bullet_hit_castle(
-    mut commands: Commands,
-    mut castle_query: Query<(Entity, &mut Castle)>,
-) {
+pub fn bullet_hit_castle(mut commands: Commands, mut castle_query: Query<(Entity, &mut Castle)>) {
     for (castle_entity, mut castle) in &mut castle_query {
         let castle_was_hit = false;
 
@@ -252,18 +253,17 @@ pub fn spawn_bullet(
     if keyboard_input.just_pressed(KeyCode::Space) && game.started {
         // Get the player position, so we know where to spawn the bullet
         if let Ok(player) = player_query.get_single() {
-            commands.spawn(
-                (SpriteBundle {
+            commands.spawn((
+                SpriteBundle {
                     transform: Transform::from_xyz(player.translation.x, player.translation.y, 0.0),
                     texture: asset_server.load("sprites/bullet.png"),
                     ..default()
-                }, Bullet {
-                    speed: 500.0,
                 },
-                 Sensor,
-                 RigidBody::Dynamic,
-                 Collider::cuboid(15.0, 10.0)),
-            );
+                Bullet { speed: 500.0 },
+                Sensor,
+                RigidBody::Dynamic,
+                Collider::cuboid(15.0, 10.0),
+            ));
         }
 
         let bullet_fire = "audio/schieten.ogg";
@@ -380,7 +380,7 @@ pub fn spawn_enemies(
                         },
                         Sensor,
                         RigidBody::Dynamic,
-                        Collider::cuboid(10.0, 10.0)
+                        Collider::cuboid(10.0, 10.0),
                     ));
                 }
             }
@@ -509,5 +509,21 @@ pub fn update_lives(mut query: Query<&mut Text, With<LivesCounter>>, lives: Res<
     for mut text in &mut query {
         let value = lives.value;
         text.sections[1].value = format!("{value}");
+    }
+}
+
+pub fn check_colliding_entities(
+    mut commands: Commands,
+    mut collision_query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
+    mut enemy_query: Query<&Enemy>,
+) {
+    for ((entity, mut bullet), colliding_entities) in collision_query.iter_mut() {
+        for colliding_entity in colliding_entities.iter() {
+            if enemy_query.get(*colliding_entity).is_ok() {
+                commands.entity(*colliding_entity).despawn();
+                commands.entity(entity).despawn();
+                return;
+            }
+        }
     }
 }
