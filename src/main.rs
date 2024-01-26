@@ -36,8 +36,8 @@ fn main() {
         .add_systems(Startup, spawn_player)
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, spawn_castles)
-        .add_systems(Startup, spawn_bullet)
-        .add_systems(Startup, move_bullet)
+        .add_systems(Update, spawn_bullet)
+        .add_systems(Update, move_bullet)
         .add_systems(Update, player_movement)
         .add_systems(Update, confine_player_movement)
         .run();
