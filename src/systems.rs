@@ -590,21 +590,26 @@ pub fn bullet_hits_enemy(
     }
 }
 
-// pub fn bullet_hit_castle(mut commands: Commands, mut castle_query: Query<(Entity, &mut Castle)>) {
-//     for (castle_entity, mut castle) in &mut castle_query {
-//         let castle_was_hit = false;
-//
-//         if castle_was_hit {
-//             castle.hitpoints -= 1;
-//             if castle.hitpoints == 0 {
-//                 // Despawn Castle with 0 hitpoints.
-//                 commands.entity(castle_entity).despawn();
-//             }
-//         }
-//     }
-// }
-
-pub fn bullet_hit_castle(
+pub fn enemy_bullet_hits_castle(
+    mut commands: Commands,
+    mut collision_query: Query<((Entity, &mut EnemyBullet), &mut CollidingEntities)>,
+    mut castle_query: Query<(Entity, &mut Castle)>,
+) {
+    for ((bullet_entity, mut bullet), mut colliding_entities) in collision_query.iter_mut() {
+        for castle_entity in colliding_entities.iter() {
+            if let Ok((ent, mut cast)) = castle_query.get_mut(*castle_entity) {
+                cast.hitpoints -= 1;
+                if cast.hitpoints == 0 {
+                    // Despawn Castle with 0 hitpoints.
+                    commands.entity(ent).despawn();
+                }
+                commands.entity(bullet_entity).despawn();
+                return;
+            }
+        }
+    }
+}
+pub fn bullet_hits_castle(
     mut commands: Commands,
     mut collision_query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
     castle_query: Query<&Castle>,
