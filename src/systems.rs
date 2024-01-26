@@ -61,12 +61,14 @@ pub fn spawn_castles(
 }
 
 pub fn spawn_bullet(mut comands: Commands) {
-    comands.spawn(
-        (Bullet {
-            position: Vec2::new(0.0, 0.0),
-            speed: 10,
-        }),
-    );
+    /*if keyboard_input.pressed(KeyCode::Space) {
+        comands.spawn(
+            (Bullet {
+                position: Vec2::new(player.translation.x, player.translation.y),
+                speed: 2,
+            }),
+        );
+    };*/
 }
 
 pub fn move_bullet(mut commands: Commands, mut query: Query<(Entity, &mut Bullet)>) {
