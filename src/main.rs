@@ -3,7 +3,9 @@ mod events;
 mod resources;
 mod systems;
 
+use events::*;
 use systems::*;
+use resources::*;
 
 use bevy::prelude::*;
 use bevy::ui::AlignSelf::Start;
@@ -14,7 +16,7 @@ use bevy_xpbd_2d::prelude::*;
 fn main() {
     App::new()
         .insert_resource(Gravity(Vec2::NEG_Y * 0.0))
-        .add_plugins((DefaultPlugins.set(WindowPlugin {
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Safe space invaders!".into(),
                 resolution: (WINDOW_HEIGHT, WINDOW_WIDTH).into(),
@@ -32,7 +34,10 @@ fn main() {
                 ..default()
             }),
             ..default()
-        })))
+        }))
+        .init_resource::<Score>()
+        .init_resource::<Lives>()
+        .add_event::<GameOver>()
         .add_systems(Startup, spawn_player)
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, spawn_castles)
