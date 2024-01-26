@@ -21,3 +21,6 @@ pub struct Enemy {
     pub level: u32,
     pub is_dead: bool,
 }
+
+#[derive(Component)]
+pub struct LivesCounter;

@@ -318,12 +318,65 @@ pub fn enemy_movements(
 pub fn enemy_hit_player(
     mut game_over_event_writer: EventWriter<GameOver>,
     mut lives: ResMut<Lives>,
+    keyboard_input: Res<Input<KeyCode>>,
     score: Res<Score>,
 ) {
-    if lives.value <= 0 {
-        game_over_event_writer.send(GameOver { score: score.value });
-        return;
-    }
 
-    lives.value -= 1;
+    if keyboard_input.pressed(KeyCode::L) {
+        if lives.value <= 0 {
+            game_over_event_writer.send(GameOver { score: score.value });
+            return;
+        }
+
+        lives.value -= 1;
+    }
+}
+
+pub fn setup_lives(
+    mut commands: Commands, 
+    asset_server: Res<AssetServer>,
+    mut start_game_event_reader: EventReader<StartGame>
+) {
+    match start_game_event_reader.read().next() {
+        Some(_) => {
+            commands.spawn((
+                TextBundle::from_sections([
+                    TextSection::new(
+                        "Lives: ",
+                        TextStyle {
+                            font: asset_server.load("fonts/Sanspix-Regular.ttf"),
+                            font_size: 30.0,
+                            ..default()
+                        },
+                    ),
+                    TextSection::from_style(
+                        TextStyle {
+                            font: asset_server.load("fonts/Sanspix-Regular.ttf"),
+                            font_size: 30.0,
+                            ..default()
+                        },
+                    ),
+                ])
+                .with_text_alignment(TextAlignment::Center)
+                .with_style(Style {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(5.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                }),
+                LivesCounter,
+            ));
+        }
+        None => (),
+    }
+}
+
+pub fn update_lives(
+    mut query: Query<&mut Text, With<LivesCounter>>,
+    lives: Res<Lives>,
+) {
+    for mut text in &mut query {
+        let value = lives.value;
+        text.sections[1].value = format!("{value}");
+    }
 }

@@ -45,6 +45,7 @@ fn main() {
         .add_systems(Startup, start_menu_music)
         .add_systems(Update, spawn_bullet)
         .add_systems(Update, move_bullet)
+        .add_systems(Update, setup_lives)
         .add_systems(Update, start_game)
         .add_systems(Update, spawn_player)
         .add_systems(Update, spawn_castles)
@@ -54,5 +55,6 @@ fn main() {
         .add_systems(Update, confine_player_movement)
         .add_systems(Update, enemy_hit_player)
         .add_systems(Update, bullet_hit_castle)
+        .add_systems(Update, update_lives)
         .run();
 }
