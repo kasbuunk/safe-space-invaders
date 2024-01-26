@@ -217,22 +217,17 @@ pub fn spawn_castles(
 
 pub fn bullet_hit_castle(
     mut commands: Commands,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    castle_query: Query<(Entity, &Transform), With<Castle>>,
-    asset_server: Res<AssetServer>,
+    mut castle_query: Query<(Entity, &mut Castle)>,
 ) {
-    for (castle, transform) in castle_query.iter() {
+    for (castle_entity, mut castle) in &mut castle_query {
         let castle_was_hit = false;
 
         if castle_was_hit {
-            // Decrement hitpoints.
-            // let new_hitpoints = castle.hitpoints;
-            let new_hitpoints = 1;
-            let position_x = 0.0;
-            let position_y = 0.0;
-
-            // Despawn Castle with these hitpoints.
-            commands.entity(castle).despawn();
+            castle.hitpoints -= 1;
+            if castle.hitpoints == 0 {
+                // Despawn Castle with these hitpoints.
+                commands.entity(castle_entity).despawn();
+            }
         }
     }
 }
