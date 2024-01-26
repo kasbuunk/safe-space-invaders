@@ -31,6 +31,24 @@ pub fn spawn_intro(
     ));
 }
 
+pub fn spawn_background(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let intro_asset_filename = "images/background.png";
+    let window: &Window = window_query.get_single().unwrap();
+
+    commands.spawn((
+        SpriteBundle {
+            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, -10.0),
+            texture: asset_server.load(intro_asset_filename),
+            ..default()
+        }
+    ));
+}
+
+
 pub fn start_game(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
@@ -54,8 +72,8 @@ pub fn spawn_player(
     asset_server: Res<AssetServer>,
     mut start_game_event_reader: EventReader<StartGame>,
 ) {
-    match start_game_event_reader.read().next() {
-        Some(event) => {
+    // match start_game_event_reader.read().next() {
+        // Some(event) => {
             let player_asset_filename = "sprites/spaceship.png";
             let window: &Window = window_query.get_single().unwrap();
 
@@ -71,9 +89,9 @@ pub fn spawn_player(
                 },
                 Player {},
             ));
-        }
-        None => (),
-    }
+    //     }
+    //     None => (),
+    // }
 }
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {

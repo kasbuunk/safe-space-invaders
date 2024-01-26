@@ -41,6 +41,7 @@ fn main() {
         .add_event::<StartGame>()
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, spawn_intro)
+        .add_systems(Startup, spawn_background)
         .add_systems(Startup, spawn_enemies)
         .add_systems(Startup, spawn_bullet)
         .add_systems(Startup, move_bullet)
