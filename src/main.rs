@@ -65,6 +65,7 @@ fn main() {
         .add_systems(Update, confine_player_movement)
         .add_systems(Update, enemy_hit_player)
         .add_systems(Update, bullet_hits_castle)
+        .add_systems(Update, enemy_bullet_hits_player)
         .add_systems(Update, enemy_bullet_hits_castle)
         .add_systems(Update, update_lives)
         .add_systems(Update, handle_game_start_music)

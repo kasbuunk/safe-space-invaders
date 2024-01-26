@@ -193,6 +193,9 @@ pub fn spawn_player(
                     ..default()
                 },
                 Player {},
+                Sensor,
+                RigidBody::Dynamic,
+                Collider::cuboid(50.0, 50.0),
             ));
         }
         None => (),
@@ -501,41 +504,21 @@ pub fn update_enemy_info(
     const CASTLE_HEIGHT: f32 = 70.0;
 
     let wall_border = (window.height() / 4.0) + (ENEMY_SIZE / 2.0) + CASTLE_HEIGHT;
-    let stand_still =  min_y <= wall_border;
+    let stand_still = min_y <= wall_border;
 
     let size = ENEMY_SIZE / 2.0;
     if min_x <= 0.5 + size {
-        enemy_info.stage = if stand_still { EnemyStage::RIGHT } else { EnemyStage::DOWN(DOWN_AMOUNT, false) };
+        enemy_info.stage = if stand_still {
+            EnemyStage::RIGHT
+        } else {
+            EnemyStage::DOWN(DOWN_AMOUNT, false)
+        };
     } else if max_x >= window.width() - 0.5 - size {
-        enemy_info.stage = if stand_still { EnemyStage::LEFT } else { EnemyStage::DOWN(DOWN_AMOUNT, true) };
-    }
-}
-
-pub fn enemy_hit_player(
-    mut game_over_event_writer: EventWriter<GameOver>,
-    mut game: ResMut<Game>,
-    mut lives: ResMut<Lives>,
-    keyboard_input: Res<Input<KeyCode>>,
-    score: Res<Score>,
-) {
-    if keyboard_input.pressed(KeyCode::W) {
-        game_over_event_writer.send(GameOver {
-            won: true,
-            score: score.value,
-        });
-        return;
-    }
-
-    if keyboard_input.pressed(KeyCode::L) {
-        if lives.value <= 0 {
-            game_over_event_writer.send(GameOver {
-                won: false,
-                score: score.value,
-            });
-            return;
-        }
-
-        lives.value -= 1;
+        enemy_info.stage = if stand_still {
+            EnemyStage::LEFT
+        } else {
+            EnemyStage::DOWN(DOWN_AMOUNT, true)
+        };
     }
 }
 
@@ -599,6 +582,30 @@ pub fn bullet_hits_enemy(
     }
 }
 
+pub fn enemy_bullet_hits_player(
+    mut commands: Commands,
+    mut collision_query: Query<((Entity, &mut EnemyBullet), &mut CollidingEntities)>,
+    mut player_query: Query<(Entity, &mut Player)>,
+    mut lives: ResMut<Lives>,
+    score: Res<Score>,
+    mut game_over_event_writer: EventWriter<GameOver>,
+) {
+    for ((bullet_entity, mut bullet), mut colliding_entities) in collision_query.iter_mut() {
+        for player_entity in colliding_entities.iter() {
+            if let Ok((ent, mut cast)) = player_query.get_mut(*player_entity) {
+                commands.entity(bullet_entity).despawn();
+                lives.value -= 1;
+                if lives.value == 0 {
+                    game_over_event_writer.send(GameOver {
+                        won: false,
+                        score: score.value,
+                    });
+                }
+                return;
+            }
+        }
+    }
+}
 pub fn enemy_bullet_hits_castle(
     mut commands: Commands,
     mut collision_query: Query<((Entity, &mut EnemyBullet), &mut CollidingEntities)>,
