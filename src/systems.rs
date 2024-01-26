@@ -481,6 +481,7 @@ pub fn update_enemy_info(
 
     let mut max_x = f32::MIN;
     let mut min_x = f32::MAX;
+    let mut min_y = f32::MAX;
 
     for enemy in &enemies_query {
         if enemy.translation.x > max_x {
@@ -490,15 +491,23 @@ pub fn update_enemy_info(
         if enemy.translation.x < min_x {
             min_x = enemy.translation.x;
         }
+
+        if enemy.translation.y < min_y {
+            min_y = enemy.translation.y;
+        }
     }
 
     const DOWN_AMOUNT: usize = 25; // 15px down
+    const CASTLE_HEIGHT: f32 = 70.0;
+
+    let wall_border = (window.height() / 4.0) + (ENEMY_SIZE / 2.0) + CASTLE_HEIGHT;
+    let stand_still =  min_y <= wall_border;
 
     let size = ENEMY_SIZE / 2.0;
     if min_x <= 0.5 + size {
-        enemy_info.stage = EnemyStage::DOWN(DOWN_AMOUNT, false);
+        enemy_info.stage = if stand_still { EnemyStage::RIGHT } else { EnemyStage::DOWN(DOWN_AMOUNT, false) };
     } else if max_x >= window.width() - 0.5 - size {
-        enemy_info.stage = EnemyStage::DOWN(DOWN_AMOUNT, true);
+        enemy_info.stage = if stand_still { EnemyStage::LEFT } else { EnemyStage::DOWN(DOWN_AMOUNT, true) };
     }
 }
 
