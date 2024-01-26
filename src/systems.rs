@@ -55,7 +55,11 @@ pub fn spawn_game_background(
 
             commands.spawn((
                 SpriteBundle {
-                    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, -10.0),
+                    transform: Transform::from_xyz(
+                        window.width() / 2.0,
+                        window.height() / 2.0,
+                        -10.0,
+                    ),
                     texture: asset_server.load(intro_asset_filename),
                     ..default()
                 },
@@ -145,6 +149,7 @@ pub fn handle_game_over_music(
 ) {
     match game_over_event_reader.read().next() {
         Some(_) => {
+            println!("game is over blabla");
             // Stop other music.
             if let Ok(music) = menu_music_query.get_single_mut() {
                 commands.entity(music).despawn();
@@ -224,24 +229,13 @@ pub fn spawn_castles(
                         ..default()
                     },
                     Castle { hitpoints: 2 },
+                    Sensor,
+                    RigidBody::Dynamic,
+                    Collider::cuboid(30.0, 70.0),
                 ));
             }
         }
         None => (),
-    }
-}
-
-pub fn bullet_hit_castle(mut commands: Commands, mut castle_query: Query<(Entity, &mut Castle)>) {
-    for (castle_entity, mut castle) in &mut castle_query {
-        let castle_was_hit = false;
-
-        if castle_was_hit {
-            castle.hitpoints -= 1;
-            if castle.hitpoints == 0 {
-                // Despawn Castle with 0 hitpoints.
-                commands.entity(castle_entity).despawn();
-            }
-        }
     }
 }
 
@@ -291,6 +285,24 @@ pub fn move_bullet(
 
         // Despawn if it's outside the screen
         if bullet_transform.translation.y > WINDOW_HEIGHT {
+            commands.entity(bullet_entity).despawn();
+        }
+    }
+}
+
+pub fn move_enemy_bullet(
+    mut commands: Commands,
+    mut bullet_query: Query<(&mut Transform, Entity, &mut EnemyBullet), With<EnemyBullet>>,
+    time: Res<Time>,
+) {
+    for bullet in bullet_query.iter_mut() {
+        let mut bullet_transform = bullet.0;
+        let bullet_entity = bullet.1;
+        let bullet_speed = bullet.2.speed;
+        bullet_transform.translation.y -= bullet_speed * time.delta_seconds();
+
+        // Despawn if it's outside the screen
+        if bullet_transform.translation.y < 0.5 {
             commands.entity(bullet_entity).despawn();
         }
     }
@@ -413,6 +425,41 @@ pub fn enemy_movements(
     }
 }
 
+pub fn enemy_shoot(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    enemies_query: Query<&Transform, With<Enemy>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    for enemy in &enemies_query {
+        // bullet shoot chance based on height of enemy. between 0 and 1
+        // let shoot_chance = 1.0 - (enemy.translation.y / window.height());
+        let rnd = rand::random::<f32>();
+        if rnd > (0.9998 - (1.0 - (enemy.translation.y / window.height())) / 1000.0) {
+            commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(enemy.translation.x, enemy.translation.y, 0.0),
+                    texture: asset_server.load("sprites/bitterbal.png"),
+                    ..default()
+                },
+                EnemyBullet { speed: 200.0 },
+                Sensor,
+                RigidBody::Dynamic,
+                Collider::ball(21.0),
+            ));
+
+            let bullet_fire = "audio/schieten.ogg";
+            commands.spawn(AudioBundle {
+                source: asset_server.load(bullet_fire),
+                settings: PlaybackSettings::ONCE,
+                ..default()
+            });
+        }
+    }
+}
+
 pub fn update_enemy_info(
     window_query: Query<&Window, With<PrimaryWindow>>,
     enemies_query: Query<&Transform, With<Enemy>>,
@@ -462,15 +509,20 @@ pub fn enemy_hit_player(
     keyboard_input: Res<Input<KeyCode>>,
     score: Res<Score>,
 ) {
-
     if keyboard_input.pressed(KeyCode::W) {
-        game_over_event_writer.send(GameOver { won: true, score: score.value });
+        game_over_event_writer.send(GameOver {
+            won: true,
+            score: score.value,
+        });
         return;
     }
 
     if keyboard_input.pressed(KeyCode::L) {
         if lives.value <= 0 {
-            game_over_event_writer.send(GameOver { won: false, score: score.value });
+            game_over_event_writer.send(GameOver {
+                won: false,
+                score: score.value,
+            });
             return;
         }
 
@@ -522,7 +574,7 @@ pub fn update_lives(mut query: Query<&mut Text, With<LivesCounter>>, lives: Res<
     }
 }
 
-pub fn check_colliding_entities(
+pub fn bullet_hits_enemy(
     mut commands: Commands,
     mut collision_query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
     enemy_query: Query<&Enemy>,
@@ -538,8 +590,39 @@ pub fn check_colliding_entities(
     }
 }
 
+// pub fn bullet_hit_castle(mut commands: Commands, mut castle_query: Query<(Entity, &mut Castle)>) {
+//     for (castle_entity, mut castle) in &mut castle_query {
+//         let castle_was_hit = false;
+//
+//         if castle_was_hit {
+//             castle.hitpoints -= 1;
+//             if castle.hitpoints == 0 {
+//                 // Despawn Castle with 0 hitpoints.
+//                 commands.entity(castle_entity).despawn();
+//             }
+//         }
+//     }
+// }
+
+pub fn bullet_hit_castle(
+    mut commands: Commands,
+    mut collision_query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
+    castle_query: Query<&Castle>,
+) {
+    for ((bullet_entity, mut bullet), colliding_entities) in collision_query.iter_mut() {
+        for castle_entity in colliding_entities.iter() {
+            if castle_query.get(*castle_entity).is_ok() {
+                // Don't mutate the Castle.
+                // commands.entity(*colliding_entity).despawn();
+                commands.entity(bullet_entity).despawn();
+                return;
+            }
+        }
+    }
+}
+
 pub fn handle_game_over(
-    mut commands: Commands, 
+    mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
     mut game_over_event_reader: EventReader<GameOver>,
@@ -552,12 +635,13 @@ pub fn handle_game_over(
 ) {
     match game_over_event_reader.read().next() {
         Some(event) => {
+            println!("game is over bla");
 
             *game = Game::ENDED;
 
             let mut screen_asset_filename = "images/game-won.png";
             let window: &Window = window_query.get_single().unwrap();
-                
+
             if event.won {
                 if score.value > high_score.value {
                     high_score.value = score.value;
@@ -566,9 +650,14 @@ pub fn handle_game_over(
                 screen_asset_filename = "images/game-lost.png";
             }
 
-            commands.spawn(
-                (SpriteBundle {
-                    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0).with_scale(Vec3::splat(0.21)),
+            commands.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(
+                        window.width() / 2.0,
+                        window.height() / 2.0,
+                        0.0,
+                    )
+                    .with_scale(Vec3::splat(0.25)),
                     texture: asset_server.load(screen_asset_filename),
                     ..default()
                 },
@@ -587,37 +676,33 @@ pub fn handle_game_over(
                 commands.entity(enemy).despawn();
             }
 
-            commands.spawn((
-                TextBundle::from_sections([
-                    TextSection::new(
-                        format!("Score: {0}", score.value),
-                        TextStyle {
-                            font: asset_server.load("fonts/Sanspix-Regular.ttf"),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                    ),
-                    TextSection::from_style(
-                        TextStyle {
-                            font: asset_server.load("fonts/Sanspix-Regular.ttf"),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                    ),
-                ])
-                .with_text_alignment(TextAlignment::Center)
-                .with_style(Style {
-                    position_type: PositionType::Absolute,
-                    top: Val::Px(100.0),
-                    left: Val::Px(100.0),
+            commands.spawn((TextBundle::from_sections([
+                TextSection::new(
+                    format!("Score: {0}", score.value),
+                    TextStyle {
+                        font: asset_server.load("fonts/Sanspix-Regular.ttf"),
+                        font_size: 30.0,
+                        ..default()
+                    },
+                ),
+                TextSection::from_style(TextStyle {
+                    font: asset_server.load("fonts/Sanspix-Regular.ttf"),
+                    font_size: 30.0,
                     ..default()
                 }),
-            ));
+            ])
+            .with_text_alignment(TextAlignment::Center)
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                top: Val::Px(100.0),
+                left: Val::Px(100.0),
+                ..default()
+            }),));
 
             // [todo] on key press (space):
             // despawn game over screens
             // set `game.started = false;` -> will trigger new game
-        },
+        }
         None => (),
     };
 }

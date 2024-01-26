@@ -27,6 +27,11 @@ pub struct Bullet {
 }
 
 #[derive(Component)]
+pub struct EnemyBullet {
+    pub speed: f32,
+}
+
+#[derive(Component)]
 pub struct Castle {
     pub hitpoints: u32,
 }
