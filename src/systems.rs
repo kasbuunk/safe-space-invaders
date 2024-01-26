@@ -167,7 +167,7 @@ pub fn spawn_enemies(
             commands.spawn((
                 SpriteBundle {
                     transform: Transform::from_xyz(new_j, i as f32 * ENEMY_SIZE, 0.0),
-                    texture: asset_server.load("sprites/player.png"),
+                    texture: asset_server.load("sprites/enemy-character.png"),
                     ..default()
                 },
                 Enemy {
