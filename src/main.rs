@@ -70,5 +70,6 @@ fn main() {
         .add_systems(Update, handle_game_start_music)
         .add_systems(Update, handle_game_over_music)
         .add_systems(Update, handle_game_over)
+        .add_systems(Update, new_game)
         .run();
 }

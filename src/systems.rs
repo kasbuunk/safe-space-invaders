@@ -58,11 +58,18 @@ pub fn spawn_game_intro(
 pub fn spawn_game_background(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    mut game_over_screen_query: Query<Entity, With<GameOverScreen>>,
     asset_server: Res<AssetServer>,
     mut game_start_event_reader: EventReader<StartGame>,
 ) {
     match game_start_event_reader.read().next() {
         Some(_) => {
+            // Remove game over screen.
+            if let Ok(screen) = game_over_screen_query.get_single_mut() {
+                commands.entity(screen).despawn();
+            }
+
+            // Spawn new screen.
             let intro_asset_filename = "images/background.png";
             let window: &Window = window_query.get_single().unwrap();
 
@@ -753,4 +760,14 @@ pub fn handle_game_over(
         }
         None => (),
     };
+}
+
+pub fn new_game(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut start_game_event_writer: EventWriter<StartGame>,
+    game: Res<Game>,
+) {
+    if keyboard_input.pressed(KeyCode::Space) && *game == Game::ENDED {
+        start_game_event_writer.send(StartGame {});
+    }
 }
