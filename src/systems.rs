@@ -1,14 +1,14 @@
-use std::string::ToString;
 use crate::components::*;
 use crate::events::*;
 use crate::resources::*;
+use std::string::ToString;
 
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
+use bevy::audio::{PlaybackMode, Volume};
 use bevy::math::vec3;
 use bevy::{prelude::*, render::render_resource::PrimitiveTopology, sprite::MaterialMesh2dBundle};
-use bevy::audio::{PlaybackMode, Volume};
 
 use bevy_xpbd_2d::{math::*, prelude::*};
 use rand::{random, Rng};
@@ -34,7 +34,8 @@ const GET_HIT_SOUNDS: [&str; 8] = [
     "audio/jeroenhit.ogg",
     "audio/kashit.ogg",
     "audio/Ryanhit.ogg",
-    "audio/stormhit.ogg"];
+    "audio/stormhit.ogg",
+];
 
 pub fn spawn_game_intro(
     mut commands: Commands,
@@ -161,12 +162,11 @@ pub fn handle_game_over_music(
 ) {
     match game_over_event_reader.read().next() {
         Some(_) => {
-            println!("game is over blabla");
             // Stop other music.
-            if let Ok(music) = menu_music_query.get_single_mut() {
+            for music in menu_music_query.iter_mut() {
                 commands.entity(music).despawn();
             }
-            if let Ok(music) = game_start_music_query.get_single_mut() {
+            for music in game_start_music_query.iter_mut() {
                 commands.entity(music).despawn();
             }
 
@@ -557,13 +557,13 @@ pub fn setup_lives(
                         ..default()
                     }),
                 ])
-                    .with_text_alignment(TextAlignment::Center)
-                    .with_style(Style {
-                        position_type: PositionType::Absolute,
-                        bottom: Val::Px(5.0),
-                        left: Val::Px(15.0),
-                        ..default()
-                    }),
+                .with_text_alignment(TextAlignment::Center)
+                .with_style(Style {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(5.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                }),
                 LivesCounter,
             ));
         }
@@ -656,10 +656,7 @@ pub fn bullet_hits_castle(
     }
 }
 
-pub fn call_random_hit_sound(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
+pub fn call_random_hit_sound(mut commands: Commands, asset_server: Res<AssetServer>) {
     let mut rng = rand::thread_rng(); // Create a random number generator
 
     // Generate a random number between 0 and the length of the array (exclusive)
@@ -688,8 +685,6 @@ pub fn handle_game_over(
 ) {
     match game_over_event_reader.read().next() {
         Some(event) => {
-            println!("game is over bla");
-
             *game = Game::ENDED;
 
             let mut screen_asset_filename = "images/game-won.png";
