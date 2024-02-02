@@ -99,7 +99,8 @@ pub fn start_game(
     mut intro_query: Query<(Entity, &Transform), With<IntroScreen>>,
     mut game: ResMut<Game>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Return) && (*game == Game::INTRO || *game == Game::ENDED) {
+    if keyboard_input.just_pressed(KeyCode::Return)
+        && (*game == Game::INTRO || *game == Game::ENDED)
     {
         start_game_event_writer.send(GameStartRequested {});
         if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
