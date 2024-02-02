@@ -617,6 +617,7 @@ pub fn bullet_hits_enemy(
     asset_server: Res<AssetServer>,
     mut collision_query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
     enemy_query: Query<&Enemy>,
+    mut score: ResMut<Score>,
 ) {
     for ((entity, mut bullet), colliding_entities) in collision_query.iter_mut() {
         for colliding_entity in colliding_entities.iter() {
@@ -624,6 +625,7 @@ pub fn bullet_hits_enemy(
                 commands.entity(*colliding_entity).despawn();
                 commands.entity(entity).despawn();
                 call_random_hit_sound(commands, asset_server);
+                score.value += 1;
                 return;
             }
         }
