@@ -7,7 +7,6 @@ pub enum Game {
     INTRO,
     LOADING,
     STARTED,
-    WON,
     ENDED,
 }
 

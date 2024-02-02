@@ -100,7 +100,6 @@ pub fn start_game(
     mut game: ResMut<Game>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) && (*game == Game::INTRO || *game == Game::ENDED) {
-        print!("wadasdas");
         start_game_event_writer.send(GameStartRequested {});
         if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
             commands.entity(intro_entity).despawn();
@@ -646,22 +645,16 @@ pub fn detect_game_won(
     mut game_over_event_writer: EventWriter<GameOver>,
     mut game: ResMut<Game>,
 ) {
-    // Define resource with flags:
-    // Each flag represents a loading state unit done
-    // SpawnEnemies on true & SpawnPlayer on true => loaded
-    //
-    // Define System that starts game when entire loading struct has true flags.
-
-    // If game is not started, return early.
-    // Query all enemies. If amount = 0, then send game over event.
     if *game != Game::STARTED {
         return;
     }
 
-
     if enemy_query.is_empty() {
-        *game = Game::WON;
-        println!("THEY ARE DEDE")
+        *game = Game::ENDED;
+        game_over_event_writer.send(GameOver {
+            won: true,
+            score: score.value,
+        });
     }
 }
 
