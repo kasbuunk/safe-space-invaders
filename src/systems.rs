@@ -98,7 +98,7 @@ pub fn start_game(
     mut intro_query: Query<(Entity, &Transform), With<IntroScreen>>,
     mut game: ResMut<Game>,
 ) {
-    if keyboard_input.pressed(KeyCode::Space) && *game == Game::INTRO {
+    if keyboard_input.pressed(KeyCode::Space) && *game != Game::STARTED {
         start_game_event_writer.send(StartGame {});
         if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
             commands.entity(intro_entity).despawn();
@@ -780,14 +780,4 @@ pub fn handle_game_over(
         }
         None => (),
     };
-}
-
-pub fn new_game(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut start_game_event_writer: EventWriter<StartGame>,
-    game: Res<Game>,
-) {
-    if keyboard_input.just_pressed(KeyCode::Space) && *game == Game::ENDED {
-        start_game_event_writer.send(StartGame {});
-    }
 }
