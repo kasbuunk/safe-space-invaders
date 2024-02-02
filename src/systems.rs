@@ -603,6 +603,15 @@ pub fn bullet_hits_enemy(
     }
 }
 
+pub fn detect_game_won(
+    mut commands: Commands,
+    enemy_query: Query<&Enemy>,
+    score: Res<Score>,
+    mut game_over_event_writer: EventWriter<GameOver>,
+) {
+    // If game is not started, return early.
+    // Query all enemies. If amount = 0, then send game over event.
+}
 pub fn enemy_bullet_hits_player(
     mut commands: Commands,
     mut collision_query: Query<((Entity, &mut EnemyBullet), &mut CollidingEntities)>,
