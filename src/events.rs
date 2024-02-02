@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 #[derive(Event)]
-pub struct StartGame {
+pub struct GameStartRequested {
 }
 
 #[derive(Event)]

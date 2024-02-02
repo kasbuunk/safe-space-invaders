@@ -61,7 +61,7 @@ pub fn spawn_game_background(
     window_query: Query<&Window, With<PrimaryWindow>>,
     mut game_over_screen_query: Query<Entity, With<GameOverScreen>>,
     asset_server: Res<AssetServer>,
-    mut game_start_event_reader: EventReader<StartGame>,
+    mut game_start_event_reader: EventReader<GameStartRequested>,
 ) {
     match game_start_event_reader.read().next() {
         Some(_) => {
@@ -95,16 +95,17 @@ pub fn start_game(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
     time: Res<Time>,
-    mut start_game_event_writer: EventWriter<StartGame>,
+    mut start_game_event_writer: EventWriter<GameStartRequested>,
     mut intro_query: Query<(Entity, &Transform), With<IntroScreen>>,
     mut game: ResMut<Game>,
 ) {
-    if keyboard_input.pressed(KeyCode::Space) && *game != Game::STARTED {
-        start_game_event_writer.send(StartGame {});
+    if keyboard_input.just_pressed(KeyCode::Space) && (*game == Game::INTRO || *game == Game::ENDED) {
+        print!("wadasdas");
+        start_game_event_writer.send(GameStartRequested {});
         if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
             commands.entity(intro_entity).despawn();
         }
-        *game = Game::STARTED;
+        *game = Game::LOADING;
     }
 }
 
@@ -125,7 +126,7 @@ pub fn handle_game_start_music(
     asset_server: Res<AssetServer>,
     mut menu_music_query: Query<Entity, With<MenuMusic>>,
     mut game_over_music_query: Query<Entity, With<GameOverMusic>>,
-    mut game_start_event_reader: EventReader<StartGame>,
+    mut game_start_event_reader: EventReader<GameStartRequested>,
 ) {
     match game_start_event_reader.read().next() {
         Some(_) => {
@@ -194,10 +195,11 @@ pub fn handle_game_over_music(
 }
 
 pub fn spawn_player(
+    mut loading_flags: ResMut<LoadingFlags>,
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
-    mut start_game_event_reader: EventReader<StartGame>,
+    mut start_game_event_reader: EventReader<GameStartRequested>,
 ) {
     match start_game_event_reader.read().next() {
         Some(event) => {
@@ -217,12 +219,14 @@ pub fn spawn_player(
                 RigidBody::Dynamic,
                 Collider::cuboid(50.0, 50.0),
             ));
+
+            loading_flags.player = true;
         }
         None => (),
     }
 }
 
-pub fn reset_lives(mut lives: ResMut<Lives>, mut start_game_event_reader: EventReader<StartGame>) {
+pub fn reset_lives(mut lives: ResMut<Lives>, mut start_game_event_reader: EventReader<GameStartRequested>) {
     match start_game_event_reader.read().next() {
         Some(event) => {
             lives.value = NUMBER_OF_LIVES;
@@ -241,10 +245,11 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
 }
 
 pub fn spawn_castles(
+    mut loading_flags: ResMut<LoadingFlags>,
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
-    mut start_game_event_reader: EventReader<StartGame>,
+    mut start_game_event_reader: EventReader<GameStartRequested>,
 ) {
     match start_game_event_reader.read().next() {
         Some(event) => {
@@ -266,6 +271,8 @@ pub fn spawn_castles(
                     Collider::cuboid(CASTLE_WIDTH, CASTLE_HEIGHT),
                 ));
             }
+
+            loading_flags.castles = true;
         }
         None => (),
     }
@@ -391,7 +398,8 @@ pub fn spawn_enemies(
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
     enemy_catalog: Res<EnemyCatalog>,
-    mut start_game_event_reader: EventReader<StartGame>,
+    mut loading_flags: ResMut<LoadingFlags>,
+    mut start_game_event_reader: EventReader<GameStartRequested>,
 ) {
     match start_game_event_reader.read().next() {
         Some(_) => {
@@ -431,6 +439,8 @@ pub fn spawn_enemies(
                     ));
                 }
             }
+
+            loading_flags.enemies = true;
         }
         None => {}
     }
@@ -554,7 +564,7 @@ pub fn update_enemy_info(
 pub fn setup_lives(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut start_game_event_reader: EventReader<StartGame>,
+    mut start_game_event_reader: EventReader<GameStartRequested>,
 ) {
     match start_game_event_reader.read().next() {
         Some(_) => {
@@ -574,13 +584,13 @@ pub fn setup_lives(
                         ..default()
                     }),
                 ])
-                .with_text_alignment(TextAlignment::Center)
-                .with_style(Style {
-                    position_type: PositionType::Absolute,
-                    bottom: Val::Px(5.0),
-                    left: Val::Px(15.0),
-                    ..default()
-                }),
+                    .with_text_alignment(TextAlignment::Center)
+                    .with_style(Style {
+                        position_type: PositionType::Absolute,
+                        bottom: Val::Px(5.0),
+                        left: Val::Px(15.0),
+                        ..default()
+                    }),
                 LivesCounter,
             ));
         }
@@ -613,15 +623,48 @@ pub fn bullet_hits_enemy(
     }
 }
 
+pub fn game_loaded(
+    mut loading_flags: ResMut<LoadingFlags>,
+    mut start_game_event_writer: EventWriter<GameStartRequested>,
+    mut game: ResMut<Game>
+) {
+    if *game != Game::LOADING {
+        return
+    }
+
+    if loading_flags.enemies  && loading_flags.castles  && loading_flags.player  {
+        *game = Game::STARTED;
+        loading_flags.enemies = false;
+        loading_flags.player = false;
+        loading_flags.castles = false;
+    }
+}
+
 pub fn detect_game_won(
-    mut commands: Commands,
     enemy_query: Query<&Enemy>,
     score: Res<Score>,
     mut game_over_event_writer: EventWriter<GameOver>,
+    mut game: ResMut<Game>,
 ) {
+    // Define resource with flags:
+    // Each flag represents a loading state unit done
+    // SpawnEnemies on true & SpawnPlayer on true => loaded
+    //
+    // Define System that starts game when entire loading struct has true flags.
+
     // If game is not started, return early.
     // Query all enemies. If amount = 0, then send game over event.
+    if *game != Game::STARTED {
+        return;
+    }
+
+
+    if enemy_query.is_empty() {
+        *game = Game::WON;
+        println!("THEY ARE DEDE")
+    }
 }
+
 pub fn enemy_bullet_hits_player(
     mut commands: Commands,
     mut collision_query: Query<((Entity, &mut EnemyBullet), &mut CollidingEntities)>,
@@ -648,6 +691,7 @@ pub fn enemy_bullet_hits_player(
         }
     }
 }
+
 pub fn enemy_bullet_hits_castle(
     mut commands: Commands,
     mut collision_query: Query<((Entity, &mut EnemyBullet), &mut CollidingEntities)>,
@@ -667,6 +711,7 @@ pub fn enemy_bullet_hits_castle(
         }
     }
 }
+
 pub fn bullet_hits_castle(
     mut commands: Commands,
     mut collision_query: Query<((Entity, &mut Bullet), &CollidingEntities)>,
@@ -691,7 +736,6 @@ pub fn call_random_hit_sound(mut commands: Commands, asset_server: Res<AssetServ
     let random_index = rng.gen_range(0..GET_HIT_SOUNDS.len());
 
     let get_hit_sound = GET_HIT_SOUNDS[random_index];
-    println!("{}", get_hit_sound);
     commands.spawn(AudioBundle {
         source: asset_server.load(get_hit_sound),
         settings: PlaybackSettings::DESPAWN,
@@ -733,7 +777,7 @@ pub fn handle_game_over(
                         window.height() / 2.0,
                         0.0,
                     )
-                    .with_scale(Vec3::splat(0.25)),
+                        .with_scale(Vec3::splat(0.25)),
                     texture: asset_server.load(screen_asset_filename),
                     ..default()
                 },

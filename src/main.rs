@@ -43,8 +43,9 @@ fn main() {
         .init_resource::<Lives>()
         .init_resource::<EnemyInfo>()
         .init_resource::<EnemyCatalog>()
+        .init_resource::<LoadingFlags>()
         .add_event::<GameOver>()
-        .add_event::<StartGame>()
+        .add_event::<GameStartRequested>()
         .add_systems(Startup, spawn_camera)
         .add_systems(Startup, spawn_game_intro)
         .add_systems(Startup, start_menu_music)
@@ -72,5 +73,6 @@ fn main() {
         .add_systems(Update, handle_game_over)
         .add_systems(Update, detect_game_won)
         .add_systems(Update, reset_lives)
+        .add_systems(Update, game_loaded)
         .run();
 }

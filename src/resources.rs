@@ -5,7 +5,9 @@ pub const NUMBER_OF_LIVES: u32 = 4;
 #[derive(Resource, PartialEq, Eq)]
 pub enum Game {
     INTRO,
+    LOADING,
     STARTED,
+    WON,
     ENDED,
 }
 
@@ -19,6 +21,24 @@ impl Default for Game {
 pub struct Score {
     pub value: u32,
 }
+
+#[derive(Resource)]
+pub struct LoadingFlags {
+    pub player: bool,
+    pub enemies: bool,
+    pub castles: bool,
+}
+
+impl Default for LoadingFlags {
+    fn default() -> LoadingFlags {
+        LoadingFlags {
+            castles: false,
+            enemies: false,
+            player: false,
+        }
+    }
+}
+
 
 impl Default for Score {
     fn default() -> Score {
