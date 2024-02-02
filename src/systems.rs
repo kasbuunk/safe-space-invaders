@@ -175,7 +175,7 @@ pub fn handle_game_over_music(
     mut game_over_event_reader: EventReader<GameOver>,
 ) {
     match game_over_event_reader.read().next() {
-        Some(_) => {
+        Some(game_over_event) => {
             // Stop other music.
             for music in menu_music_query.iter_mut() {
                 commands.entity(music).despawn();
@@ -185,10 +185,13 @@ pub fn handle_game_over_music(
             }
 
             // Start game over music.
-            let menu_music_filename = "audio/game-over.ogg";
+            let game_over_music = match game_over_event.won {
+                true => "audio/win-sound.ogg",
+                false => "audio/game-over.ogg",
+            };
             commands.spawn((
                 AudioBundle {
-                    source: asset_server.load(menu_music_filename),
+                    source: asset_server.load(game_over_music),
                     settings: PlaybackSettings::DESPAWN,
                     ..default()
                 },
