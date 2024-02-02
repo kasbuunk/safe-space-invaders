@@ -221,6 +221,15 @@ pub fn spawn_player(
     }
 }
 
+pub fn reset_lives(mut lives: ResMut<Lives>, mut start_game_event_reader: EventReader<StartGame>) {
+    match start_game_event_reader.read().next() {
+        Some(event) => {
+            lives.value = NUMBER_OF_LIVES;
+        }
+        None => (),
+    }
+}
+
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
 
@@ -624,7 +633,9 @@ pub fn enemy_bullet_hits_player(
         for player_entity in colliding_entities.iter() {
             if let Ok((ent, mut cast)) = player_query.get_mut(*player_entity) {
                 commands.entity(bullet_entity).despawn();
-                lives.value -= 1;
+                if lives.value > 0 {
+                    lives.value -= 1;
+                }
                 if lives.value == 0 {
                     game_over_event_writer.send(GameOver {
                         won: false,
@@ -776,7 +787,7 @@ pub fn new_game(
     mut start_game_event_writer: EventWriter<StartGame>,
     game: Res<Game>,
 ) {
-    if keyboard_input.pressed(KeyCode::Space) && *game == Game::ENDED {
+    if keyboard_input.just_pressed(KeyCode::Space) && *game == Game::ENDED {
         start_game_event_writer.send(StartGame {});
     }
 }

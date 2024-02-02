@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+pub const NUMBER_OF_LIVES: u32 = 4;
+
 #[derive(Resource, PartialEq, Eq)]
 pub enum Game {
     INTRO,
@@ -42,7 +44,9 @@ pub struct Lives {
 
 impl Default for Lives {
     fn default() -> Lives {
-        Lives { value: 3 }
+        Lives {
+            value: NUMBER_OF_LIVES,
+        }
     }
 }
 
