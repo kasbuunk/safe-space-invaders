@@ -99,7 +99,8 @@ pub fn start_game(
     mut intro_query: Query<(Entity, &Transform), With<IntroScreen>>,
     mut game: ResMut<Game>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Space) && (*game == Game::INTRO || *game == Game::ENDED) {
+    if keyboard_input.just_pressed(KeyCode::Space) && (*game == Game::INTRO || *game == Game::ENDED)
+    {
         start_game_event_writer.send(GameStartRequested {});
         if let Ok((intro_entity, intro_transform)) = intro_query.get_single_mut() {
             commands.entity(intro_entity).despawn();
@@ -125,6 +126,7 @@ pub fn handle_game_start_music(
     asset_server: Res<AssetServer>,
     mut menu_music_query: Query<Entity, With<MenuMusic>>,
     mut game_over_music_query: Query<Entity, With<GameOverMusic>>,
+    mut score_text_query: Query<Entity, With<ScoreText>>,
     mut game_start_event_reader: EventReader<GameStartRequested>,
 ) {
     match game_start_event_reader.read().next() {
@@ -135,6 +137,9 @@ pub fn handle_game_start_music(
             }
             if let Ok(music) = game_over_music_query.get_single_mut() {
                 commands.entity(music).despawn();
+            }
+            if let Ok(text) = score_text_query.get_single_mut() {
+                commands.entity(text).despawn();
             }
 
             // Start game over music.
@@ -225,7 +230,10 @@ pub fn spawn_player(
     }
 }
 
-pub fn reset_lives(mut lives: ResMut<Lives>, mut start_game_event_reader: EventReader<GameStartRequested>) {
+pub fn reset_lives(
+    mut lives: ResMut<Lives>,
+    mut start_game_event_reader: EventReader<GameStartRequested>,
+) {
     match start_game_event_reader.read().next() {
         Some(event) => {
             lives.value = NUMBER_OF_LIVES;
@@ -583,13 +591,13 @@ pub fn setup_lives(
                         ..default()
                     }),
                 ])
-                    .with_text_alignment(TextAlignment::Center)
-                    .with_style(Style {
-                        position_type: PositionType::Absolute,
-                        bottom: Val::Px(5.0),
-                        left: Val::Px(15.0),
-                        ..default()
-                    }),
+                .with_text_alignment(TextAlignment::Center)
+                .with_style(Style {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(5.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                }),
                 LivesCounter,
             ));
         }
@@ -625,13 +633,13 @@ pub fn bullet_hits_enemy(
 pub fn game_loaded(
     mut loading_flags: ResMut<LoadingFlags>,
     mut start_game_event_writer: EventWriter<GameStartRequested>,
-    mut game: ResMut<Game>
+    mut game: ResMut<Game>,
 ) {
     if *game != Game::LOADING {
-        return
+        return;
     }
 
-    if loading_flags.enemies  && loading_flags.castles  && loading_flags.player  {
+    if loading_flags.enemies && loading_flags.castles && loading_flags.player {
         *game = Game::STARTED;
         loading_flags.enemies = false;
         loading_flags.player = false;
@@ -770,7 +778,7 @@ pub fn handle_game_over(
                         window.height() / 2.0,
                         0.0,
                     )
-                        .with_scale(Vec3::splat(0.25)),
+                    .with_scale(Vec3::splat(0.25)),
                     texture: asset_server.load(screen_asset_filename),
                     ..default()
                 },
@@ -789,28 +797,31 @@ pub fn handle_game_over(
                 commands.entity(enemy).despawn();
             }
 
-            commands.spawn((TextBundle::from_sections([
-                TextSection::new(
-                    format!("Score: {0}", score.value),
-                    TextStyle {
+            commands.spawn((
+                TextBundle::from_sections([
+                    TextSection::new(
+                        format!("Score: {0}", score.value),
+                        TextStyle {
+                            font: asset_server.load("fonts/Sanspix-Regular.ttf"),
+                            font_size: 30.0,
+                            ..default()
+                        },
+                    ),
+                    TextSection::from_style(TextStyle {
                         font: asset_server.load("fonts/Sanspix-Regular.ttf"),
                         font_size: 30.0,
                         ..default()
-                    },
-                ),
-                TextSection::from_style(TextStyle {
-                    font: asset_server.load("fonts/Sanspix-Regular.ttf"),
-                    font_size: 30.0,
+                    }),
+                ])
+                .with_text_alignment(TextAlignment::Center)
+                .with_style(Style {
+                    position_type: PositionType::Absolute,
+                    top: Val::Px(100.0),
+                    left: Val::Px(100.0),
                     ..default()
                 }),
-            ])
-            .with_text_alignment(TextAlignment::Center)
-            .with_style(Style {
-                position_type: PositionType::Absolute,
-                top: Val::Px(100.0),
-                left: Val::Px(100.0),
-                ..default()
-            }),));
+                ScoreText,
+            ));
 
             // [todo] on key press (space):
             // despawn game over screens

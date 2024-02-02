@@ -43,5 +43,7 @@ pub struct Enemy {
 }
 
 #[derive(Component)]
-pub struct LivesCounter;
+pub struct ScoreText;
 
+#[derive(Component)]
+pub struct LivesCounter;
