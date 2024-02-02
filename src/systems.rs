@@ -16,7 +16,8 @@ use rand::{random, Rng};
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: f32 = 64.0;
 // Player sprite size.
-pub const CASTLE_SIZE: f32 = 64.0;
+pub const CASTLE_HEIGHT: f32 = 70.0;
+pub const CASTLE_WIDTH: f32 = 30.0;
 pub const NUMBER_OF_CASTLES: u32 = 4;
 
 pub const WINDOW_WIDTH: f32 = 600.0;
@@ -262,7 +263,7 @@ pub fn spawn_castles(
                     Castle { hitpoints: 2 },
                     Sensor,
                     RigidBody::Dynamic,
-                    Collider::cuboid(30.0, 70.0),
+                    Collider::cuboid(CASTLE_WIDTH, CASTLE_HEIGHT),
                 ));
             }
         }
